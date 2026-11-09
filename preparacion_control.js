@@ -672,12 +672,14 @@
         details+='<div class="workspaceSelectPair"><label>OBJETO A<select id="workspaceA">'+optionList(ctx.compareA)+'</select></label>' +
           '<label>OBJETO B<select id="workspaceB">'+optionList(ctx.compareB)+'</select></label></div>';
         if(valid) {
-          const keys=[...new Set([...(a.channels||[]),...(b.channels||[])].map(c=>c[0]))];
+          const approvedChannels=['Base','Luz','Sombra','Fuego','Hielo','Naturaleza','Tierra','Rayo'];
+          const keys=approvedChannels.filter(key=>[...(a.channels||[]),...(b.channels||[])].some(c=>c[0]===key));
+          const oraIcon=key=>'<img class="genesisCompareORA" src="assets/ui/resultado/oras/'+({Base:'01_Base.png',Luz:'02_Luz.png',Sombra:'03_Sombra.png',Fuego:'04_Fuego.png',Hielo:'05_Hielo.png',Naturaleza:'06_Naturaleza.png',Tierra:'07_Tierra.png',Rayo:'08_Rayo.png'}[key])+'" alt="" aria-hidden="true">';
           const fmt=(item,key)=>{const ix=(item.channels||[]).findIndex(c=>c[0]===key);if(ix<0)return '—';const ch=item.channels[ix];return ctx.metricForChannel?ctx.metricForChannel(item,ch,ix).display:String(ch[1])+(ix?'%':'')};
           details+='<div class="workspaceCompareHeader"><span>RESULTADO</span><b>A</b><b>B</b></div>' +
             '<div class="workspaceCompareRow"><span>Rareza</span><b>'+escape(a.rarity)+'</b><b>'+escape(b.rarity)+'</b></div>' +
             '<div class="workspaceCompareRow"><span>Canales</span><b>'+(a.channels||[]).length+'</b><b>'+(b.channels||[]).length+'</b></div>' +
-            keys.map(key=>'<div class="workspaceCompareRow"><span>'+escape(key)+'</span><b>'+escape(fmt(a,key))+'</b><b>'+escape(fmt(b,key))+'</b></div>').join('') +
+            keys.map(key=>'<div class="workspaceCompareRow"><span>'+oraIcon(key)+escape(key)+'</span><b>'+escape(fmt(a,key))+'</b><b>'+escape(fmt(b,key))+'</b></div>').join('') +
             '<p class="workspaceFootnote">Misma familia y fórmula de sesión. Cada cierre conserva sus valores propios.</p>';
         } else details+='<p class="workspaceCompareHint">Elegí dos objetos distintos de la misma familia para comparar sus canales.</p>';
         viewer=valid?'<div class="workspacePair"><div class="workspacePairA">'+ctx.renderAsset(a)+'<p>A · '+escape(a.name)+'</p></div><div class="workspacePairB">'+ctx.renderAsset(b)+'<p>B · '+escape(b.name)+'</p></div></div>':
