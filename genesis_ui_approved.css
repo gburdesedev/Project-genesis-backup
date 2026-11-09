@@ -250,3 +250,12 @@
 .gApprovedSlotAsset .gApprovedCreationThumb{width:100%;height:100%;object-fit:contain;display:block}
 .gApprovedEquipmentHero .gApprovedCreation360{display:block;width:100%;height:100%;min-height:0}
 .gApprovedEquipmentHero .gApprovedRotationHint{position:absolute;bottom:2%;left:12%;right:12%;text-align:center;pointer-events:none;font-size:clamp(9px,.8vw,14px);color:#e5c68d;background:#080808cc}
+
+/* V20.003: contenido del inventario dentro de sus marcos ORA aprobados. */
+.gApprovedSlot{contain:layout paint;overflow:hidden!important}
+.gApprovedSlotAsset{display:flex;align-items:center;justify-content:center;width:100%;height:calc(100% - 19%);min-width:0;min-height:0;overflow:hidden;flex:0 1 auto}
+.gApprovedSlotAsset img,.gApprovedSlotAsset model-viewer{display:block;position:static!important;width:auto!important;height:auto!important;max-width:72%!important;max-height:94%!important;min-width:0!important;min-height:0!important;object-fit:contain!important;object-position:center!important;flex-shrink:1}
+.gApprovedSlot .gApprovedQty{z-index:2;bottom:3%;left:3%;right:3%;text-align:center;background:#080604d9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(9px,.93cqw,15px)}
+.gApprovedEquipmentHero{background:transparent!important;overflow:hidden}
+.gApprovedEquipmentHero img{max-width:78%!important;max-height:88%!important;object-fit:contain!important}
+.gApprovedEquipmentHero model-viewer{background:transparent!important}
