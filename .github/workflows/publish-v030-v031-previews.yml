@@ -1,0 +1,69 @@
+name: Publish isolated playable V030 and V031 previews
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-v030-v031-previews.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: genesis-preview-v030-v031
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/step02-comparacion-approved-20261109
+          path: v030
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/step03-mercenario-approved-20261109
+          path: v031
+          persist-credentials: false
+      - name: Validate isolated versions before publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          for version in v030 v031; do
+            test -s "$version/index.html"
+            test -s "$version/preparacion_control.js"
+            node --check "$version/preparacion_control.js"
+            node --check "$version/genesis_ui_approved.js"
+            test -s "$version/assets/ui/resultado/oras/manifest.sha256.json"
+          done
+          grep -q 'genesisCompareORA' v030/preparacion_control.js
+          grep -q 'mercenary_4t_runtime_ml06.js?v=ML13' v031/index.html
+          node --check v031/mercenary_4t_runtime_ml06.js
+          node --check v031/mercenary_channel_vfx_ml11.mjs
+          (cd v031 && node tests/mercenary_ml08_slot_ora.cjs)
+      - name: Copy complete version snapshots into separate Pages paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p site/v030 site/v031
+          rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='reference/' v030/ site/v030/
+          rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='reference/' v031/ site/v031/
+          test -s site/v030/index.html
+          test -s site/v031/index.html
+          test -s site/v031/assets/playcanvas/candidates/mercenary/v050/GENESIS_MERCENARY_V050_4T_SHIELD_FIT_V12B_V015.glb
+          printf 'V030 and V031 previews are experimental; original root remains unchanged.\n' > site/v030/PREVIEW_STATUS.txt
+          cp site/v030/PREVIEW_STATUS.txt site/v031/PREVIEW_STATUS.txt
+      - name: Publish without modifying original game or Pages root
+        working-directory: site
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add v030 v031
+          git diff --cached --quiet && exit 0
+          git commit -m 'preview: publish independent V030 comparison and V031 ML13 mercenary'
+          git push origin HEAD:gh-pages
