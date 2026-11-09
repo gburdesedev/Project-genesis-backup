@@ -53,7 +53,6 @@ jobs:
           cd destination
           git fetch origin gh-pages || true
           git switch --orphan publish-backup-pages
-          git rm -r --cached . >/dev/null 2>&1 || true
           git add -A
           git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Publish isolated backup preview'
           git push --force origin HEAD:gh-pages
