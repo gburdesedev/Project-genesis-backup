@@ -72,6 +72,46 @@
  }
  function cleanBoardPosters(board){
    board.querySelectorAll('img.gApprovedMaterialArt').forEach(cleanMaterialPoster);
+   board.querySelectorAll('img.gApprovedCreationThumb,img.gApprovedEquipmentPoster').forEach(cleanCreationPoster);
+ }
+ const creationPosterCache=new Map();
+ function cleanCreationPoster(img){
+   if(!img||img.dataset.creationCleaned)return;
+   img.dataset.creationCleaned='1';
+   const src=img.getAttribute('src');
+   if(!src||!src.includes('espada_v03_hierro_v175_v12b_cycles_hdri32.png'))return;
+   if(creationPosterCache.has(src)){img.src=creationPosterCache.get(src);return;}
+   const process=()=>{
+     try{
+       const w=img.naturalWidth,h=img.naturalHeight;if(!w||!h)return;
+       const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+       const c=cv.getContext('2d',{willReadFrequently:true});c.drawImage(img,0,0);
+       const data=c.getImageData(0,0,w,h),d=data.data;
+       let x0=w,y0=h,x1=0,y1=0,kept=0;
+       for(let y=0;y<h;y++){
+         const left=(y*w)*4,right=(y*w+w-1)*4;
+         for(let x=0;x<w;x++){
+           const p=(y*w+x)*4,t=x/Math.max(1,w-1);
+           const dr=d[p]-(d[left]*(1-t)+d[right]*t);
+           const dg=d[p+1]-(d[left+1]*(1-t)+d[right+1]*t);
+           const db=d[p+2]-(d[left+2]*(1-t)+d[right+2]*t);
+           const dist=Math.sqrt(dr*dr+dg*dg+db*db);
+           const alpha=Math.max(0,Math.min(255,Math.round((dist-25)*255/55)));
+           d[p+3]=Math.min(d[p+3],alpha);
+           if(alpha>150){x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);kept++;}
+         }
+       }
+       if(kept<w*h*.001||kept>w*h*.55)return;
+       c.putImageData(data,0,0);
+       const pad=Math.round(Math.max(x1-x0,y1-y0)*.08);
+       const sx=Math.max(0,x0-pad),sy=Math.max(0,y0-pad),sw=Math.min(w-sx,x1-x0+2*pad+1),sh=Math.min(h-sy,y1-y0+2*pad+1);
+       const cropped=document.createElement('canvas');cropped.width=sw;cropped.height=sh;
+       cropped.getContext('2d').drawImage(cv,sx,sy,sw,sh,0,0,sw,sh);
+       const clean=cropped.toDataURL('image/png');creationPosterCache.set(src,clean);
+       document.querySelectorAll('img.gApprovedCreationThumb,img.gApprovedEquipmentPoster').forEach(el=>{if(el.getAttribute('src')===src)el.src=clean;});
+     }catch(err){console.warn('[Genesis V20.003] Poster matte cleanup unavailable',err);}
+   };
+   if(img.complete&&img.naturalWidth)process();else img.addEventListener('load',process,{once:true});
  }
  function itemFamily(item){const raw=String([item?.recipe,item?.recipeFamily,item?.type,item?.name].filter(Boolean).join(' ')).toLowerCase();return /escud|shield/.test(raw)?'Escudos':/espad|sword/.test(raw)?'Espadas':'Creaciones'}
  const APPROVED_SWORD_POSTER='./assets/playcanvas/approved/equipment/espada_v03_hierro_v175_v12b_cycles_hdri32.png';
@@ -96,7 +136,7 @@
    const model=creationModel(e.item);
    if(model&&!window.GenesisDevice?.safePreviews)
      return '<model-viewer class="gApprovedCreation360" src="'+esc(model)+'" alt="'+esc(e.name)+'" camera-controls auto-rotate interaction-prompt="none" disable-zoom camera-orbit="25deg 75deg auto"'+(poster?' poster="'+esc(poster)+'"':'')+'></model-viewer><span class="gApprovedRotationHint">Girar objeto · 360°</span>';
-   return (typeof ctx.renderAsset==='function'?ctx.renderAsset(e.item):(poster?'<img src="'+esc(poster)+'" alt="'+esc(e.name)+'">':''))+
+   return (poster?'<img class="gApprovedEquipmentPoster" src="'+esc(poster)+'" alt="'+esc(e.name)+'">':(typeof ctx.renderAsset==='function'?ctx.renderAsset(e.item):''))+
      '<span class="gApprovedRotationHint">'+(window.GenesisDevice?.safePreviews?'Vista estática en modo seguro':'Vista 360° disponible cuando exista GLB aprobado')+'</span>';
  }
  function mount(tab,ctx,nav,body,attrs=''){
