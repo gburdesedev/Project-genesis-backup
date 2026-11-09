@@ -202,7 +202,7 @@ html.modalOpen,body.modalOpen{overflow:hidden!important;overscroll-behavior:none
 <script>
 if(!window.GenesisDevice.safePreviews){const script=document.createElement('script');script.type='module';script.src='https://cdn.jsdelivr.net/npm/@google/model-viewer/dist/model-viewer.min.js';document.head.append(script)}
 </script>
-<meta name="genesis-build" content="project-genesis-backup-v20.004-build-20261109.004">
+<meta name="genesis-build" content="project-genesis-backup-v20.005-candidate-20261109.005">
 <link rel="stylesheet" href="./responsive.css?v=0.11.017">
 <style id="genesisHistoricalResultStyle">
 /* Layout recovered from the historical 1672×941 Resultado de fabricación,
@@ -265,6 +265,12 @@ if(!window.GenesisDevice.safePreviews){const script=document.createElement('scri
  .genesisHistoricTitle>span{font-size:14px}.genesisHistoricTitle strong{font-size:15px}
  .genesisHistoricPanel dl{font-size:11px}
  .genesisHistoricMaterial{font-size:11px;min-height:30px}}
+</style>
+<style id="genesisSwordV20_005Viewer">
+/* Approved layout unchanged; only replace the old static sword image in its existing frame. */
+.genesisSwordV12B3D{display:block;width:100%;height:100%;min-height:120px;background:transparent;--progress-bar-color:transparent}
+.genesisSwordV12B3D::part(default-progress-bar){display:none}
+.gCmpHeroArt .genesisSwordV12B3D,.workspaceHero .genesisSwordV12B3D,.workspaceViewer .genesisSwordV12B3D{min-height:210px}
 </style>
 </head>
 <body>
@@ -1480,11 +1486,14 @@ const APPROVED_SWORD_V12B_RENDER='./assets/playcanvas/approved/equipment/espada_
 const EQUIP_MODEL_URLS=Object.freeze({
  escudo_hierro:'https://cdn.jsdelivr.net/gh/Genesara/genesara-web@main/public/models/props/shield_round.glb'
 });
+// V20.005 genuine standalone sword GLB from the organization's experimental equipment repository.
+const GENESIS_SWORD_V12B_GLB='https://raw.githubusercontent.com/ProjectGenesisAssets2/genesis-equipment-assets/experiment/v12b-standalone-glb-export-20261109/assets/equipment/experimental/espada_v03_v175_v12b/Genesis_Sword_Iron_V03_V175_V12B_PBR_WebGL_CANDIDATE.glb';
 const MOBILE_SAFE_PREVIEWS=window.GenesisDevice.safePreviews;
 function itemAssetMarkup(item){
  const kind=recipeKind(item.recipe);
  if(item.recipe==='espada_hierro'){
-  return `<img class="genesisSwordV12BCycles" alt="Espada de hierro V03 V175 V12B, render Cycles real con HDRI EXR 32 bits" src="${APPROVED_SWORD_V12B_RENDER}" data-approved-sword="V03-V175-V12B" decoding="async">`;
+  if(MOBILE_SAFE_PREVIEWS)return `<img class="genesisSwordV12BCycles" alt="Espada de hierro V03 V175 V12B" src="${APPROVED_SWORD_V12B_RENDER}" decoding="async">`;
+  return `<model-viewer class="genesisSwordV12B3D" src="${GENESIS_SWORD_V12B_GLB}" poster="${APPROVED_SWORD_V12B_RENDER}" alt="Espada V03 V175 V12B: modelo 3D original giratorio" camera-controls touch-action="pan-y" camera-orbit="0deg 75deg auto" shadow-intensity="0.8" exposure="1.05" environment-image="neutral" interaction-prompt="none" disable-zoom data-genesis-sword="V03-V175-V12B"></model-viewer>`;
  }
  const src=EQUIP_MODEL_URLS[item.recipe];
  if(MOBILE_SAFE_PREVIEWS||!src)return `<img alt="${esc(kind)}" src="${itemIcon(item.recipe)}">`;
