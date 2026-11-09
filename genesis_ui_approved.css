@@ -245,3 +245,8 @@
   border:0!important;outline:0!important;box-shadow:none!important;
   background:transparent!important;
 }
+
+/* Backup main inventory hotfix: preserve approved ORA positioning. */
+.gApprovedSlotAsset .gApprovedCreationThumb{width:100%;height:100%;object-fit:contain;display:block}
+.gApprovedEquipmentHero .gApprovedCreation360{display:block;width:100%;height:100%;min-height:0}
+.gApprovedEquipmentHero .gApprovedRotationHint{position:absolute;bottom:2%;left:12%;right:12%;text-align:center;pointer-events:none;font-size:clamp(9px,.8vw,14px);color:#e5c68d;background:#080808cc}
