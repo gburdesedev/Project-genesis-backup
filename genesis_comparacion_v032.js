@@ -54,19 +54,33 @@
    });
  }
  function compatible(a,b){return !!a&&!!b&&a!==b&&familyOf(a)===familyOf(b);}
+ // V20.006: real approved asset images, not a glyph or unrelated placeholder.
+ // Thumbnail rendering must not embed model-viewer inside the small list cells.
+ const SWORD_POSTER="assets/playcanvas/approved/equipment/espada_v03_hierro_v175_v12b_cycles_hdri32.png";
+ const SHIELD_POSTER="assets/ui/fabricaciones_ora_v004/V015_REAL_SHIELD_ICON_RGBA.png";
  function poster(ctx,item){
+   if(item?.recipe==="espada_hierro")return '<img loading="lazy" alt="Espada V175 V12B real" src="'+SWORD_POSTER+'">';
+   if(item?.recipe==="escudo_hierro")return '<img loading="lazy" alt="Escudo V015 real" src="'+SHIELD_POSTER+'">';
    try{
      const asset=typeof ctx.renderAsset==="function"?String(ctx.renderAsset(item)||""):"";
-     const m=asset.match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i);
-     if(m&&/^(?:\.\/)?assets\//.test(m[1]))return '<img loading="lazy" alt="" src="'+esc(m[1])+'">';
+     const m=asset.match(/<img\\b[^>]*\\bsrc=["']([^"']+)["']/i);
+     if(m&&/^(?:\\.\\/)?assets\\//.test(m[1]))return '<img loading="lazy" alt="" src="'+esc(m[1])+'">';
    }catch(e){console.warn("[Genesis Comparacion] Miniatura no disponible",e);}
-   return '<span class="gCmpSlotFallback" aria-hidden="true">◈</span>';
+   return '<span class="gCmpSlotUnavailable" aria-label="Sin miniatura">Sin imagen</span>';
+ }
+ function itemAffinity(item){
+   const values=[...(Array.isArray(item?.affinities)?item.affinities:[]),...(Array.isArray(item?.channels)?item.channels.slice(1):[])];
+   for(const v of values){
+     const n=String(Array.isArray(v)?v[0]:"").toLowerCase();
+     if(n==="fuego"||n==="rayo"||n==="hielo")return n;
+   }
+   return "";
  }
  function hero(ctx,item){
    if(!item)return '<div class="gCmpEmpty"><span class="gCmpEmptyMark" aria-hidden="true">◇</span><span>Arrastrá aquí una fabricación</span></div>';
    let art="";
    try{art=typeof ctx.renderAsset==="function"?String(ctx.renderAsset(item)||""):"";}catch(e){console.warn("[Genesis Comparacion] Asset no disponible",e);}
-   return '<div class="gCmpHeroArt">'+(art||'<span>Asset no disponible</span>')+'</div><div class="gCmpHeroCaption"><b>'+esc(item.name||item.recipe)+'</b><span>'+esc(item.rarity||"")+'</span></div>';
+   return '<div class="gCmpHeroArt" data-affinity="'+itemAffinity(item)+'">'+(art||'<span>Asset no disponible</span>')+'</div><div class="gCmpHeroCaption"><b>'+esc(item.name||item.recipe)+'</b><span>'+esc(item.rarity||"")+'</span></div>';
  }
  function render(ctx,nav){
    if(!ctx||!nav||typeof ctx.modal!=="function")return false;
