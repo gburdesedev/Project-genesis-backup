@@ -48,7 +48,23 @@ jobs:
         run: |
           set -euo pipefail
           cd candidate
-          node --test tests/comparacion_v032_inventory.test.cjs tests/starter_sword_stock_v014020.cjs tests/approved_ui_four_screens.cjs
+          # The v014020 test asserts a 2026-11-02 title and RAW ore on purpose;
+          # it is obsolete for this requested V20.005 prepared-ingot demo.
+          # approved_ui_four_screens requires Playwright (not installed on this runner).
+          node --test tests/comparacion_v032_inventory.test.cjs
+          node --test tests/fabricacion_progresiva.cjs tests/mercenary_equipment_domain_v001.cjs
+          node - <<'JS'
+          const fs=require('fs'),assert=require('assert');
+          const html=fs.readFileSync('index.html','utf8');
+          const css=fs.readFileSync('genesis_comparacion_v032.css','utf8');
+          assert(html.includes('playerInventory = { ...(craftSession.requiredStock || craftSession.stock) }'));
+          assert(html.includes('GENESIS_SWORD_V12B_GLB'));
+          assert(html.includes('camera-controls touch-action="pan-y"'));
+          assert(css.includes('width:min(1820px'));
+          for(const [left,width] of [[281,270],[551,294],[845,301],[1147,274]])
+            assert(css.includes('left:calc('+left+' / 1672 * 100%);width:calc('+width+' / 1672 * 100%)'));
+          console.log('V20.005 targeted candidate checks passed');
+          JS
       - name: Copy candidate into isolated public preview without touching Pages root
         run: |
           set -euo pipefail
