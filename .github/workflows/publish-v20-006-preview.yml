@@ -1,0 +1,65 @@
+name: Publish V20.006 isolated recovered fabrication result
+on:
+  push:
+    branches: [experiment/v20-006-resultado-v016001-20261109]
+    paths: ['.github/workflows/publish-v20-006-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: genesis-preview-v20006
+  cancel-in-progress: false
+jobs:
+  test-and-publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/v20-006-resultado-v016001-20261109
+          path: candidate
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          persist-credentials: true
+      - name: Verify V20.006 result, original ORA, source and NGE linkage
+        run: |
+          set -euo pipefail
+          cd candidate
+          node --check genesis_comparacion_v032.js
+          node --check preparacion_control.js
+          node --check modules/resultado_v016001/genesis_result_dynamic_v001.js
+          node --test tests/v20_006_result_integration.cjs
+          node --test tests/mercenary_equipment_domain_v001.cjs
+          test -s modules/resultado_v016001/genesis_result_dynamic_v001.css
+          test -s assets/ui/resultado/oras/manifest.sha256.json
+      - name: Test actual 3D sword GLB availability
+        run: |
+          set -euo pipefail
+          curl -fLsS --retry 2 --range 0-31 --max-time 45 'https://raw.githubusercontent.com/ProjectGenesisAssets2/genesis-equipment-assets/experiment/v12b-standalone-glb-export-20261109/assets/equipment/experimental/espada_v03_v175_v12b/Genesis_Sword_Iron_V03_V175_V12B_PBR_WebGL_CANDIDATE.glb' -o /tmp/genesis-sword-header
+          python3 - <<'PY'
+          import struct
+          b=open('/tmp/genesis-sword-header','rb').read()
+          assert b[:4]==b'glTF' and struct.unpack_from('<I',b,4)[0]==2
+          print('V20.006 standalone sword GLB verified')
+          PY
+      - name: Publish isolated V20.006 beside existing V20.005
+        run: |
+          set -euo pipefail
+          mkdir -p site/v20-006
+          rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --exclude='preview/' --exclude='reference/' --exclude='qa-results/' candidate/ site/v20-006/
+          test -s site/v20-006/index.html
+          test -s site/v20-006/modules/resultado_v016001/genesis_result_dynamic_v001.js
+          test -s site/v20-006/assets/ui/resultado/oras/08_Rayo.png
+          printf 'Experimental V20.006: recovered V016.001 crafting result, real channels/ORA, original V175-V12B 3D GLB. Awaiting browser visual review.\n' > site/v20-006/PREVIEW_STATUS.txt
+      - name: Push candidate to gh-pages without changing root
+        working-directory: site
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add v20-006
+          git diff --cached --quiet && exit 0
+          git commit -m 'preview(v20.006): real connected V016.001 fabrication result'
+          git push origin HEAD:gh-pages
