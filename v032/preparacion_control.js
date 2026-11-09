@@ -533,9 +533,43 @@
     return false;
   }
   function approvedUiNav(){return {renderMenu,renderWorkspace,craft,start,close,sheetForItem};}
+  // V014.032: Comparacion V5 usa el mismo contexto que Inventario/Fabricaciones.
+  // Carga diferida y aislada: ante error vuelve al comparador anterior.
+  let compareV032Loading=false,compareV032Failed=false;
+  function renderComparisonV032(ctx){
+    if(window.GenesisComparacionV032?.render){
+      halt();ctx.mode='workspace';ctx.tab='Comparacion';
+      return window.GenesisComparacionV032.render(ctx,approvedUiNav());
+    }
+    if(compareV032Failed)return false;
+    ctx.tab='Comparacion';
+    if(compareV032Loading)return true;
+    compareV032Loading=true;
+    const style=document.createElement('link');
+    style.rel='stylesheet';style.href='./genesis_comparacion_v032.css?v=032.1';
+    const js=document.createElement('script');
+    js.src='./genesis_comparacion_v032.js?v=032.1';
+    const failed=()=>{
+      compareV032Failed=true;compareV032Loading=false;
+      style.remove();js.remove();
+      console.error('[Genesis V032] Falló la carga de Comparación V5; disponible comparador anterior.');
+      if(session===ctx&&ctx.tab==='Comparacion')renderWorkspace('Comparacion');
+    };
+    js.onload=()=>{
+      compareV032Loading=false;
+      if(!window.GenesisComparacionV032?.render){failed();return;}
+      if(session===ctx&&ctx.tab==='Comparacion')renderWorkspace('Comparacion');
+    };
+    js.onerror=failed;
+    style.onerror=failed;
+    style.onload=()=>document.head.append(js);
+    document.head.append(style);
+    return true;
+  }
   function renderWorkspace(tab) {
     const ctx=session;
     if(!ctx) return;
+    if(tab==='Comparacion'&&ctx.getItems&&renderComparisonV032(ctx))return;
     // Único arte aprobado para Inventario V11 y Fabricaciones V07, sin cambiar los originales.
     if(ctx.profession==='Herrero'&&ctx.getItems&&['Inventario','Fabricaciones'].includes(tab)){
       if(window.GenesisApprovedUI?.render){
