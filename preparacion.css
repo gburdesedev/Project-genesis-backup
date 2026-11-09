@@ -523,3 +523,6 @@
 }
 .workspaceViewer .prepMaterialVisual.charcoal .prepMaterialModel{transform:scale(1.13)}
 .workspaceViewer .prepMaterialVisual.charcoal .prepMaterialPoster{transform:scale(1.06);mask-image:none}
+
+/* V014.030 approved ORA comparison: preserve actual source art proportions. */
+.workspaceCompareRow .genesisCompareORA{display:inline-block;width:1.65em;height:1.65em;object-fit:contain;vertical-align:middle;margin-right:.38em;filter:none}
