@@ -1,0 +1,82 @@
+name: Stage V014.030 comparison and V014.031 mercenary independently
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/stage-v030-v031.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  comparison-v030:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/step02-comparacion-approved-20261109
+      - uses: actions/checkout@v4
+        with:
+          repository: gburdesedev/Project-genesis
+          ref: experiment/mercenario-ml13-vfx-preview-clock-fix-20261109
+          path: reference
+          persist-credentials: false
+      - name: Stage original approved eight ORAs and verify integrity
+        run: |
+          set -euo pipefail
+          mkdir -p assets/ui/resultado/oras tests
+          cp reference/assets/ui/resultado/oras/*.png assets/ui/resultado/oras/
+          cp reference/assets/ui/resultado/oras/manifest.sha256.json assets/ui/resultado/oras/
+          cp reference/tests/mercenary_ml08_slot_ora.cjs tests/
+          python3 - <<'PY'
+          import json,hashlib,pathlib
+          root=pathlib.Path('assets/ui/resultado/oras')
+          d=json.loads((root/'manifest.sha256.json').read_text())
+          assert len(d['channels'])==8
+          for c in d['channels']:
+            b=(root/c['png']).read_bytes()
+            assert hashlib.sha256(b).hexdigest()==c['png_sha256']
+          print('Eight approved ORAs verified')
+          PY
+      - name: Save isolated V030 assets without publishing
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/ui/resultado/oras tests/mercenary_ml08_slot_ora.cjs
+          git diff --cached --quiet || git commit -m 'stage(v014030): eight verified approved ORAs for comparison'
+          git push origin HEAD:experiment/step02-comparacion-approved-20261109
+  mercenary-v031:
+    runs-on: ubuntu-24.04
+    needs: comparison-v030
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/step03-mercenario-approved-20261109
+      - uses: actions/checkout@v4
+        with:
+          repository: gburdesedev/Project-genesis
+          ref: experiment/mercenario-ml13-vfx-preview-clock-fix-20261109
+          path: reference
+          persist-credentials: false
+      - name: Stage ML13 isolated modules and approved equipment assets
+        run: |
+          set -euo pipefail
+          cp reference/mercenary_4t_runtime_ml06.js .
+          cp reference/mercenary_4t_runtime_ml06.css .
+          cp reference/mercenary_channel_vfx_ml11.mjs .
+          mkdir -p assets/ui/mercenary/4t assets/ui/resultado/oras assets/playcanvas/candidates/mercenary/v050 vfx/approved vfx/experimental tests
+          cp reference/assets/ui/mercenary/4t/* assets/ui/mercenary/4t/
+          cp reference/assets/ui/resultado/oras/* assets/ui/resultado/oras/
+          cp reference/assets/playcanvas/candidates/mercenary/v050/*.glb assets/playcanvas/candidates/mercenary/v050/
+          cp reference/vfx/approved/*.mjs vfx/approved/
+          cp reference/vfx/experimental/*.mjs vfx/experimental/
+          cp reference/tests/mercenary_ml08_slot_ora.cjs tests/
+          node --check mercenary_4t_runtime_ml06.js
+          node --check mercenary_channel_vfx_ml11.mjs
+          node tests/mercenary_ml08_slot_ora.cjs
+          test -s assets/playcanvas/candidates/mercenary/v050/GENESIS_MERCENARY_V050_4T_SHIELD_FIT_V12B_V015.glb
+      - name: Save isolated ML13 without publishing or enabling runtime
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add mercenary_4t_runtime_ml06.* mercenary_channel_vfx_ml11.mjs assets/ui/mercenary/4t assets/ui/resultado/oras assets/playcanvas/candidates/mercenary/v050 vfx tests/mercenary_ml08_slot_ora.cjs
+          git diff --cached --quiet || git commit -m 'stage(v014031): ML13 equipment and VFX modules isolated for integration'
+          git push origin HEAD:experiment/step03-mercenario-approved-20261109
