@@ -1510,7 +1510,7 @@ function renderGenesisResultV033(item){
   return dynamic.html(item,itemAssetMarkup);
  }catch(error){
   console.error('[Genesis V033] dynamic result fallback',error);
-  return renderGenesisApprovedResultV032(item);
+  return renderGenesisApprovedResultV032(item)+'<div class="actions"><button id="resultContinue">Continuar</button></div>';
  }
 }
 function renderGenesisApprovedResultV032(item){
