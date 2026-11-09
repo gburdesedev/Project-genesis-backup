@@ -1,0 +1,83 @@
+name: Integrate approved Fabricaciones V07 ORA V004 into backup
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/integrate-fabricaciones-approved.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: backup
+      - uses: actions/checkout@v4
+        with:
+          repository: gburdesedev/Project-genesis
+          ref: experiment/v014030-fabricaciones-ora-v004-runtime-20261109
+          path: approved-source
+          persist-credentials: false
+          lfs: true
+      - name: Integrate fabrication screen only, preserving V014.029 result
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s backup/index.html
+          grep -q 'renderGenesisHistoricCreationResult' backup/index.html
+          mkdir -p backup/assets/ui/fabricaciones_ora_v004
+          rsync -a approved-source/assets/ui/fabricaciones_ora_v004/ backup/assets/ui/fabricaciones_ora_v004/
+          cp approved-source/genesis_fabricacion_modular_v004.js backup/
+          cp approved-source/genesis_fabricacion_modular_v004.css backup/
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('backup/index.html')
+          s=p.read_text()
+          assert 'Project Genesis v0.14.029' in s
+          assert 'genesis_fabricacion_modular_v004.js' not in s
+          needle='<head>'
+          assert needle in s
+          s=s.replace(needle,needle+"""
+          <link rel="stylesheet" href="./genesis_fabricacion_modular_v004.css?v=004.1">
+          <script>window.GenesisExperimentalFabricacionV004=true;</script>
+          <script src="./genesis_fabricacion_modular_v004.js?v=004.1"></script>
+          """,1)
+          p.write_text(s)
+          p=Path('backup/genesis_ui_approved.js')
+          s=p.read_text()
+          needle='function fabrications(ctx,nav){'
+          assert s.count(needle)==1
+          assert 'GenesisFabricacionModular?.render' not in s
+          s=s.replace(needle,needle+"""
+            if(window.GenesisFabricacionModular?.render && window.GenesisExperimentalFabricacionV004===true){
+              return window.GenesisFabricacionModular.render(ctx,nav,mount);
+            }
+          """,1)
+          p.write_text(s)
+          PY
+          node --check backup/genesis_ui_approved.js
+          node --check backup/genesis_fabricacion_modular_v004.js
+          grep -q 'renderGenesisHistoricCreationResult' backup/index.html
+          grep -q 'GenesisFabricacionModular.render' backup/genesis_ui_approved.js
+          test -s backup/assets/ui/fabricaciones_ora_v004/Fabricaciones_Base_Limpia_V004.png
+      - name: Check source-approved fabrication screen and layout
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check approved-source/tests/fabricaciones_v004_runtime_qa.cjs
+          cp approved-source/tests/fabricaciones_v004_runtime_qa.cjs backup/tests/
+          cd backup
+          node tests/fabricaciones_v004_runtime_qa.cjs
+      - name: Publish only after validation
+        working-directory: backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html genesis_ui_approved.js genesis_fabricacion_modular_v004.js genesis_fabricacion_modular_v004.css assets/ui/fabricaciones_ora_v004 tests/fabricaciones_v004_runtime_qa.cjs
+          git commit -m 'feat(backup): integrate approved Fabricaciones V07 ORA V004 screen'
+          git push origin HEAD:main
+          git push --force origin HEAD:gh-pages
