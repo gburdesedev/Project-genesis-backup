@@ -1,0 +1,41 @@
+name: Validate V030 and V031 incremental runtime
+on:
+  push:
+    branches:
+      - experiment/step02-comparacion-approved-20261109
+      - experiment/step03-mercenario-approved-20261109
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JS syntax and canonical assets
+        run: |
+          set -euo pipefail
+          node --check preparacion_control.js
+          node --check genesis_ui_approved.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          root=Path('assets/ui/resultado/oras')
+          data=json.loads((root/'manifest.sha256.json').read_text())
+          assert len(data['channels'])==8
+          for item in data['channels']:
+              p=root/item['png']
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==item['png_sha256'],p
+          s=Path('preparacion_control.js').read_text()
+          assert 'Comparacion' in s
+          assert 'compareA' in s
+          if Path('mercenary_4t_runtime_ml06.js').exists():
+              assert 'mercenary_4t_runtime_ml06.js?v=ML13' in Path('index.html').read_text()
+              assert Path('assets/playcanvas/candidates/mercenary/v050/GENESIS_MERCENARY_V050_4T_SHIELD_FIT_V12B_V015.glb').stat().st_size>100000
+          print('PASS static checks (not gameplay)')
+          PY
+          if test -f mercenary_4t_runtime_ml06.js; then
+            node --check mercenary_4t_runtime_ml06.js
+            node --check mercenary_channel_vfx_ml11.mjs
+            node tests/mercenary_ml08_slot_ora.cjs
+          fi
