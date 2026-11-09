@@ -51,10 +51,6 @@ jobs:
         run: |
           set -euo pipefail
           cd destination
-          git fetch origin gh-pages || true
-          git switch --orphan publish-backup-pages
-          git add -A
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Publish isolated backup preview'
           git push --force origin HEAD:gh-pages
           echo "Pages source branch ready: gh-pages / (root)"
           echo "Enable Settings > Pages > Deploy from a branch > gh-pages / (root) if Pages is not configured."
