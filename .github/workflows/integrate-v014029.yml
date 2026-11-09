@@ -1,0 +1,60 @@
+name: Integrate V014.029 on independent backup
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/integrate-v014029.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  integrate-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: backup
+      - uses: actions/checkout@v4
+        with:
+          repository: gburdesedev/Project-genesis
+          ref: integration/v014029-result-safe-20261109
+          path: patch
+          persist-credentials: false
+      - name: Verify patch and preserve backup game
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'Project Genesis v0.14.028' backup/index.html
+          grep -q 'Project Genesis v0.14.029' patch/index.html
+          test -s patch/assets/playcanvas/approved/equipment/espada_v03_hierro_v175_v12b_cycles_hdri32.png
+          mkdir -p backup/tests
+          cp patch/index.html backup/index.html
+          cp patch/tests/v014029_historic_result_qa.cjs backup/tests/
+          node --check backup/tests/v014029_historic_result_qa.cjs
+          grep -q 'renderGenesisHistoricCreationResult(item)' backup/index.html
+      - name: Install Playwright for real screenshot QA
+        run: |
+          npm install --prefix /tmp/genesis029qa playwright@1.56.1
+          npx --yes playwright@1.56.1 install --with-deps chromium
+      - name: Verify V014.029 real approved sword and channels
+        working-directory: backup
+        env:
+          NODE_PATH: /tmp/genesis029qa/node_modules
+        run: node tests/v014029_historic_result_qa.cjs
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: genesis-backup-v014029-visual-check
+          path: backup/previews/v014029-historic-result/
+      - name: Commit and publish only if QA passed
+        working-directory: backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html tests/v014029_historic_result_qa.cjs
+          git commit -m 'feat(backup): integrate V014.029 historic fabrication result'
+          git push origin HEAD:main
+          git push --force origin HEAD:gh-pages
