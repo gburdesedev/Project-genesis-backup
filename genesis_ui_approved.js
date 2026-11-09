@@ -119,7 +119,7 @@
    const families=['Materiales','Espadas','Escudos'];
    if(!families.includes(state.family))state.family='Materiales';
    const entries=state.family==='Materiales'?stock.map(([name,qty])=>({key:'m:'+name,name,qty:Number(qty),material:true})):
-     creations.map((item,i)=>({item,i})).filter(({item})=>itemFamily(item)===state.family).map(({item,i})=>({key:'c:'+String(item.id||i),name:item.name,material:false,item}));
+     creations.map((item,i)=>({item,i})).filter(({item})=>itemFamily(item)===state.family).map(({item,i})=>({key:'c:'+String(item.id||item.uuid||i)+':'+i,name:item.name,material:false,item}));
    const maxPage=Math.max(0,Math.ceil(entries.length/20)-1);state.page=Math.min(state.page,maxPage);
    const page=entries.slice(state.page*20,state.page*20+20);
    if(!page.some(e=>e.key===state.selected))state.selected=page[0]?.key||null;
