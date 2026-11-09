@@ -83,7 +83,7 @@
  }
  function creationModel(item){
    const raw=item?.modelAsset||item?.asset?.glb||item?.modelUrl||'';
-   return typeof raw==='string'&&/^\\.?\\/?assets\\/[\\w./-]+\\.glb(?:\\?[^"'<>]*)?$/i.test(raw)&&!raw.includes('..')?raw:'';
+   return typeof raw==='string' && (raw.startsWith('assets/')||raw.startsWith('./assets/')) && raw.split('?')[0].toLowerCase().endsWith('.glb') && !raw.includes('..') && !/[<>"']/.test(raw) ? raw : '';
  }
  function entryView(e,ctx,hero){
    if(e.material)return materialVisual(e.name,hero);
