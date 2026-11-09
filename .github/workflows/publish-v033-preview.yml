@@ -1,4 +1,4 @@
-name: Publish isolated V033 approved result preview (deployment)
+name: Publish isolated V033 dynamic ORA result preview (deployment)
 on:
   push:
     branches: [main]
@@ -23,14 +23,14 @@ jobs:
           ref: experiment/v014033-resultado-creaciones-v4-20261109
           path: v033
           persist-credentials: false
-      - name: Verify V033 approved module and retained V031 systems
+      - name: Verify V033 dynamic ORA module and retained V031 systems
         run: |
           set -euo pipefail
           test -s v033/index.html
-          test -s v033/modules/genesis_result_dynamic_v001.js
+          test -s v033/genesis_result_dynamic_v001.js
           (cd v033 && node --check genesis_result_dynamic_v001.js)
           node --check v033/mercenary_4t_runtime_ml06.js
-          grep -q 'renderGenesisApprovedResultV033(item)' v033/index.html
+          grep -q 'renderGenesisResultV033(item)' v033/index.html
           grep -q 'genesisCompareORA' v033/preparacion_control.js
       - name: Copy independent V033 snapshot
         run: |
@@ -38,7 +38,7 @@ jobs:
           mkdir -p site/v033
           rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='reference/' v033/ site/v033/
           test -s site/v033/index.html
-          printf 'Experimental V033: approved result module; not visually approved as complete game.\n' > site/v033/PREVIEW_STATUS.txt
+          printf 'Experimental V033: dynamic ORA result module; not visually approved as complete game.\n' > site/v033/PREVIEW_STATUS.txt
       - name: Publish without modifying original game or Pages root
         working-directory: site
         shell: bash
