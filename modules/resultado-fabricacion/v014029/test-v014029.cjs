@@ -41,6 +41,11 @@ const css=fs.readFileSync(path.join(root,'resultado-fabricacion-v014029.css'),'u
 assert.match(css,/\.genesisHistoricResult\s*\{/);
 assert.match(css,/\.craftModal:has\(\.genesisHistoricResult\)/);
 const index=fs.readFileSync(path.join(root,'../../../index.html'),'utf8');
-assert.ok(index.includes('Project Genesis v0.14.028'),'Module branch must retain stable host main');
-assert.ok(!index.includes('renderGenesisHistoricCreationResult(item)'), 'Module branch must NOT patch gameplay');
+if(process.env.GENESIS_INTEGRATION_TEST==='1'){
+ assert.ok(index.includes('renderGenesisApprovedResultV032(item)'), 'V032 must use the approved renderer');
+ assert.ok(index.includes('resultado-fabricacion-v014029.js?v=032'), 'V032 must load approved module');
+}else{
+ assert.ok(index.includes('Project Genesis v0.14.028'),'Module branch must retain stable host main');
+ assert.ok(!index.includes('renderGenesisHistoricCreationResult(item)'), 'Module branch must NOT patch gameplay');
+}
 console.log('PASS V014029: pure renderer, dynamic channels, unchanged item, approved CSS, untouched stable game');
