@@ -1,0 +1,54 @@
+name: Publish isolated V034 comparison V5 ORA and inventory preview (deployment)
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-v034-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: genesis-preview-v034
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/v014034-comparacion-v5-ora-20261109
+          path: v034
+          persist-credentials: false
+      - name: Verify V034 dynamic ORA module and retained V031 systems
+        run: |
+          set -euo pipefail
+          test -s v034/index.html
+          test -s v034/genesis_result_dynamic_v001.js
+          (cd v034 && node --check genesis_result_dynamic_v001.js)
+          node --check v034/mercenary_4t_runtime_ml06.js
+          node --check v034/genesis_comparacion_v032.js
+          (cd v034 && node --test tests/comparacion_v032_inventory.test.cjs)
+          grep -q 'renderGenesisResultV033(item)' v034/index.html
+          grep -q 'GenesisComparacionV032.render' v034/preparacion_control.js
+      - name: Copy independent V034 snapshot
+        run: |
+          set -euo pipefail
+          mkdir -p site/v034
+          rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='reference/' v034/ site/v034/
+          test -s site/v034/index.html
+          printf 'Experimental V034: dynamic ORA result module; not visually approved as complete game.\n' > site/v034/PREVIEW_STATUS.txt
+      - name: Publish without modifying original game or Pages root
+        working-directory: site
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add v034
+          git diff --cached --quiet && exit 0
+          git commit -m 'preview: publish independent V034 dynamic ORA creation result'
+          git push origin HEAD:gh-pages
