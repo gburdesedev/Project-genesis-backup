@@ -1484,11 +1484,11 @@ function itemIcon(recipeId){return ITEM_GLYPHS[recipeKind(recipeId)]||ITEM_GLYPH
 // through the approved asset adapter; NEVER fall back to an unrelated sword.
 const APPROVED_SWORD_V12B_RENDER='./assets/playcanvas/approved/equipment/espada_v03_hierro_v175_v12b_cycles_hdri32.png';
 const EQUIP_MODEL_URLS=Object.freeze({
- escudo_hierro:'https://cdn.jsdelivr.net/gh/Genesara/genesara-web@main/public/models/props/shield_round.glb'
+ escudo_hierro:'./assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb'
 });
 // V20.005 genuine standalone sword GLB from the organization's experimental equipment repository.
 const GENESIS_SWORD_V12B_GLB='https://raw.githubusercontent.com/ProjectGenesisAssets2/genesis-equipment-assets/experiment/v12b-standalone-glb-export-20261109/assets/equipment/experimental/espada_v03_v175_v12b/Genesis_Sword_Iron_V03_V175_V12B_PBR_WebGL_CANDIDATE.glb';
-const MOBILE_SAFE_PREVIEWS=window.GenesisDevice.safePreviews;
+const MOBILE_SAFE_PREVIEWS=window.GenesisDevice.safePreviews;\nconst APPROVED_SHIELD_V015_POSTER="./assets/ui/fabricaciones_ora_v004/V015_REAL_SHIELD_CROPPED.png";
 function itemAssetMarkup(item){
  const kind=recipeKind(item.recipe);
  if(item.recipe==='espada_hierro'){
@@ -1535,8 +1535,8 @@ function renderGenesisHistoricCreationResult(item){
     <div class="genesisHistoricPanel genesisHistoricLog"><h3>HISTORIAL</h3><p>Creación registrada</p><small>El objeto ha sido fabricado correctamente.</small></div>
    </aside>
    <div class="genesisHistoricView"><div class="genesisHistoricAura" aria-hidden="true"></div>
-    <div class="genesisHistoricObject" aria-label="Vista de la espada aprobada">${itemArt}</div>
-    <div class="genesisHistoricViewerNote">${esc(visual.label)} · ${item.recipe==='espada_hierro'?'Render auténtico V175/V12B · HDRI EXR 32 bits':'Vista del objeto'}</div>
+    <div class="genesisHistoricObject" aria-label="Vista del objeto fabricado">${itemArt}</div>
+    <div class="genesisHistoricViewerNote">${esc(visual.label)} · ${item.recipe==='espada_hierro'?'Espada V175/V12B · modelo 3D':item.recipe==='escudo_hierro'?'Escudo V015 · modelo 3D original':'Vista del objeto'}</div>
    </div>
    <aside class="genesisHistoricRight">
     <div class="genesisHistoricPanel genesisHistoricChannelPanel"><h3>CANALES DEL OBJETO</h3>
