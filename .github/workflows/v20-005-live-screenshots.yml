@@ -23,7 +23,7 @@ jobs:
       - name: Open deployed V20.005 and capture real browser
         run: |
           set -euo pipefail
-          node tools/qa/v20_005_live_capture.cjs
+          GENESIS_CAPTURE_INTRO_ONLY=1 node tools/qa/v20_005_live_capture.cjs
           test -s qa-results/v20-005-live/01-inicio-real.png
           test -s qa-results/v20-005-live/report.json
           python3 - <<'PY'
@@ -34,12 +34,22 @@ jobs:
           print('QA_HTTP',r.get('httpStatus'),'BUILD',r.get('build'),'SCREENS',len(r.get('captures',[])))
           for e in r.get('issues',[])[:12]:print('QA_ISSUE',e[:450])
           PY
+      - name: Render current approved menu boards using Playwright in isolated UI harness
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          node tests/approved_ui_four_screens.cjs
+          mkdir -p qa-results/v20-005-ui-art
+          if [ -d previews/approved-ui-four-screens ]; then
+            cp previews/approved-ui-four-screens/*.png qa-results/v20-005-ui-art/ || true
+          fi
       - name: Persist actual captured PNGs and diagnostic report on isolated QA branch
+        if: always()
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add qa-results/v20-005-live
+          git add -f qa-results/v20-005-live qa-results/v20-005-ui-art || true
           git diff --cached --quiet && exit 0
           git commit -m 'qa: real Playwright screenshots of deployed V20.005 and browser diagnostics'
           git push origin HEAD:qa/v20-005-playwright-captures-20261109
