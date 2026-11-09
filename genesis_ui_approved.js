@@ -73,7 +73,7 @@
  function cleanBoardPosters(board){
    board.querySelectorAll('img.gApprovedMaterialArt').forEach(cleanMaterialPoster);
  }
- function itemFamily(item){const raw=String(item?.family||item?.recipeFamily||item?.recipe||'').toLowerCase();return /escud/.test(raw)?'Escudos':/espad/.test(raw)?'Espadas':'Creaciones'}
+ function itemFamily(item){const raw=String([item?.recipe,item?.recipeFamily,item?.type,item?.name].filter(Boolean).join(' ')).toLowerCase();return /escud|shield/.test(raw)?'Escudos':/espad|sword/.test(raw)?'Espadas':'Creaciones'}
  const APPROVED_SWORD_POSTER='./assets/playcanvas/approved/equipment/espada_v03_hierro_v175_v12b_cycles_hdri32.png';
  function creationPoster(item){
    const recipe=String(item?.recipe||'').toLowerCase();
