@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>QA V014.032 Comparación V5 · DATOS DE PRUEBA</title>
+<base href="../">
+<style>html,body{width:100%;height:100%;margin:0;background:#050608;display:grid;place-items:center}.modal{position:relative}</style>
+<link rel="stylesheet" href="genesis_comparacion_v032.css?v=032.1"></head>
+<body><main id="host" class="modal"></main>
+<script>
+window.GenesisPrototypeEngines={recipes:{espada_hierro:{name:"Espada de hierro",mechanic:"damage"},escudo_hierro:{name:"Escudo de hierro",mechanic:"protection"}}};
+window.qaItems=[
+ {recipe:"espada_hierro",name:"Filo del Temple Tenaz",rarity:"Común",channels:[["Daño",22.8],["Fuego",8.7],["Hielo",12],["Naturaleza",6.8],["Tierra",15.6],["Rayo",5.1]]},
+ {recipe:"espada_hierro",name:"Filo del Temple Claro",rarity:"Bueno",channels:[["Daño",27.2],["Fuego",9.4],["Hielo",9.5],["Naturaleza",8.7],["Tierra",12.4],["Rayo",7.9]]},
+ {recipe:"escudo_hierro",name:"Escudo I",rarity:"Común",channels:[["Protección",18],["Tierra",6]]},
+ {recipe:"escudo_hierro",name:"Escudo II",rarity:"Bueno",channels:[["Protección",25],["Tierra",9]]}
+];
+window.qaCtx={
+ getItems:()=>window.qaItems,
+ renderAsset:item=>'<img alt="'+item.name+'" src="assets/playcanvas/approved/equipment/espada_v03_hierro_v175_v12b_cycles_hdri32.png">',
+ modal:(html,cls)=>{const host=document.getElementById("host");host.className="modal "+cls;host.innerHTML=html},
+ profession:"Herrero"
+};
+window.qaNav={renderMenu:()=>{},renderWorkspace:()=>{},close:()=>{}};
+</script>
+<script src="genesis_comparacion_v032.js?v=032.1"></script>
+<script>window.GenesisComparacionV032.render(window.qaCtx,window.qaNav);</script>
+</body></html>
