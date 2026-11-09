@@ -1,0 +1,52 @@
+name: Publish isolated V032 approved result preview
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/publish-v030-v031-previews.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: genesis-preview-v032
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/v014032-resultado-aprobado-20261109
+          path: v032
+          persist-credentials: false
+      - name: Verify V032 approved module and retained V031 systems
+        run: |
+          set -euo pipefail
+          test -s v032/index.html
+          test -s v032/modules/resultado-fabricacion/v014029/resultado-fabricacion-v014029.js
+          (cd v032 && GENESIS_INTEGRATION_TEST=1 node modules/resultado-fabricacion/v014029/test-v014029.cjs)
+          node --check v032/mercenary_4t_runtime_ml06.js
+          grep -q 'renderGenesisApprovedResultV032(item)' v032/index.html
+          grep -q 'genesisCompareORA' v032/preparacion_control.js
+      - name: Copy independent V032 snapshot
+        run: |
+          set -euo pipefail
+          mkdir -p site/v032
+          rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='reference/' v032/ site/v032/
+          test -s site/v032/index.html
+          printf 'Experimental V032: approved result module; not visually approved as complete game.\n' > site/v032/PREVIEW_STATUS.txt
+      - name: Publish without modifying original game or Pages root
+        working-directory: site
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add v032
+          git diff --cached --quiet && exit 0
+          git commit -m 'preview: publish independent V032 approved crafting result'
+          git push origin HEAD:gh-pages
