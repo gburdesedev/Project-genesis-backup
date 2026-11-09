@@ -267,6 +267,8 @@ if(!window.GenesisDevice.safePreviews){const script=document.createElement('scri
  .genesisHistoricPanel dl{font-size:11px}
  .genesisHistoricMaterial{font-size:11px;min-height:30px}}
 </style>
+<link rel="stylesheet" href="./modules/resultado-fabricacion/v014029/resultado-fabricacion-v014029.css?v=032">
+<script src="./modules/resultado-fabricacion/v014029/resultado-fabricacion-v014029.js?v=032"></script>
 </head>
 <body>
 
@@ -1498,6 +1500,20 @@ function metricForChannel(item,channel,index){
  }
  if(isProtection)return{label:`Protección de ${name}`,display:`+${value}%`,hint:`Protección porcentual específica frente a ${name}; no se suma a Protección base.`};
  return{label:`Daño de ${name}`,display:`+${value}%`,hint:`Daño elemental porcentual sobre la referencia de Daño base; conversión efectiva pendiente de balance.`};
+}
+function renderGenesisApprovedResultV032(item){
+ const approved=window.GenesisCraftResultV014029;
+ if(!approved?.render)return renderGenesisHistoricCreationResult(item);
+ try {
+  return approved.render(item,{
+   recipes:window.GenesisPrototypeEngines.recipes,
+   itemVisual,formulaWeightBreakdown,recipeKind,metricForChannel,
+   itemAssetMarkup,AFFINITY_VISUAL,esc
+  });
+ }catch(error){
+  console.error('[Genesis V032] approved result fallback',error);
+  return renderGenesisHistoricCreationResult(item);
+ }
 }
 function renderGenesisHistoricCreationResult(item){
  const rec=window.GenesisPrototypeEngines.recipes[item.recipe];
