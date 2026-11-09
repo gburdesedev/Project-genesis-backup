@@ -2,7 +2,7 @@
    Pestañas y 8 canales = PNG originales, no reconstruidos por CSS.
    Sin logo adicional. La geometría de las pantallas maestras se mantiene 16:9. */
 .modal.preparationModal.gCmpV032Modal{
- width:min(1672px,calc(100vw - 12px),calc((100dvh - 12px)*1672/941))!important;
+ width:min(1820px,calc(100vw - 12px),calc((100dvh - 12px)*1672/941))!important;
  height:auto!important;max-width:100%!important;max-height:calc(100dvh - 12px)!important;
  aspect-ratio:1672/941!important;overflow:hidden!important;padding:0!important;
  border:0!important;border-radius:0!important;background:#050608!important;
@@ -16,7 +16,7 @@
 .gCmpRoot button,.gCmpRoot select{font:inherit;cursor:pointer;color:inherit}
 .gCmpRoot button:focus-visible,.gCmpRoot select:focus-visible{outline:2px solid #ffe6a0;outline-offset:2px}
 .gCmpRoot:before{content:"";position:absolute;left:1%;right:1%;top:11.1%;height:1px;background:linear-gradient(90deg,transparent,#e3b76f,#f7d287,#e3b76f,transparent)}
-/* Cabecera ORA compartida con Preparacion / Inventario V05.
+/* V20.005: Comparacion uses the same 1820px maximum panel width as Preparacion.\n   Keep the approved 1672x941 comparison artboard and original ORA tab coordinates.\n   Cabecera ORA compartida con Preparacion / Inventario V05.
    Coordenadas comprobadas en lienzo 1672x941. No estirar las cuatro pestanas
    a columnas iguales: cada PNG tiene su propia anchura original. */
 .gCmpNav{position:absolute;inset:0;z-index:5;width:100%;height:100%;display:block;pointer-events:none}
