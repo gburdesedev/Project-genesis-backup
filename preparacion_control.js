@@ -536,6 +536,11 @@
   function renderWorkspace(tab) {
     const ctx=session;
     if(!ctx) return;
+    // V034: recuperar Comparacion V5 ORA desde el inventario real.
+    if(tab==='Comparacion'&&ctx.getItems&&window.GenesisComparacionV032?.render){
+      halt();ctx.mode='workspace';ctx.tab=tab;
+      if(window.GenesisComparacionV032.render(ctx,approvedUiNav()))return;
+    }
     // Único arte aprobado para Inventario V11 y Fabricaciones V07, sin cambiar los originales.
     if(ctx.profession==='Herrero'&&ctx.getItems&&['Inventario','Fabricaciones'].includes(tab)){
       if(window.GenesisApprovedUI?.render){
