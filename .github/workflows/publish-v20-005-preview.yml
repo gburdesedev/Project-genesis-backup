@@ -1,0 +1,67 @@
+name: V20.005 isolated playable candidate QA and preview
+on:
+  push:
+    branches: [experiment/v20-005-prepared-ingots-20261109]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: genesis-preview-v20005
+  cancel-in-progress: false
+jobs:
+  verify-and-publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/v20-005-prepared-ingots-20261109
+          path: candidate
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          persist-credentials: true
+      - name: Verify candidate version, original 3D sword URL and starter ingots
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s candidate/index.html
+          grep -q 'project-genesis-backup-v20.005-candidate' candidate/index.html
+          grep -q 'GENESIS_SWORD_V12B_GLB' candidate/index.html
+          grep -q 'playerInventory = { ...(craftSession.requiredStock || craftSession.stock) }' candidate/index.html
+          grep -q 'width:min(1820px' candidate/genesis_comparacion_v032.css
+          test -s candidate/genesis_comparacion_v032.js
+          test -s candidate/preparacion_control.js
+          node --check candidate/genesis_comparacion_v032.js
+          node --check candidate/preparacion_control.js
+          node --check candidate/inventario_genesis_16x9.js
+          node --check candidate/genesis_fabricacion_modular_v004.js
+          curl -fLsS --retry 3 --range 0-31 --max-time 45 'https://raw.githubusercontent.com/ProjectGenesisAssets2/genesis-equipment-assets/experiment/v12b-standalone-glb-export-20261109/assets/equipment/experimental/espada_v03_v175_v12b/Genesis_Sword_Iron_V03_V175_V12B_PBR_WebGL_CANDIDATE.glb' -o /tmp/sword-header
+          python3 - <<'PY'
+          import struct
+          b=open('/tmp/sword-header','rb').read()
+          assert b[:4]==b'glTF' and struct.unpack_from('<I',b,4)[0]==2
+          print('GENESIS_V20_005_SWORD_URL_GLTF_VERIFIED')
+          PY
+      - name: Run isolated runtime regression checks
+        run: |
+          set -euo pipefail
+          cd candidate
+          node --test tests/comparacion_v032_inventory.test.cjs tests/starter_sword_stock_v014020.cjs tests/approved_ui_four_screens.cjs
+      - name: Copy candidate into isolated public preview without touching Pages root
+        run: |
+          set -euo pipefail
+          mkdir -p site/v20-005
+          rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --exclude='preview/' --exclude='reference/' candidate/ site/v20-005/
+          printf 'V20.005 experimental candidate: starter ingots, aligned comparison, standalone sword GLB. Visual QA and VFX binding pending.\n' > site/v20-005/PREVIEW_STATUS.txt
+      - name: Publish independent candidate
+        working-directory: site
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add v20-005
+          git diff --cached --quiet && exit 0
+          git commit -m 'preview(v20.005): independent playable candidate with real sword GLB'
+          git push origin HEAD:gh-pages
