@@ -1,0 +1,31 @@
+name: Validate approved result V032
+on:
+  push:
+    branches: [experiment/v014032-resultado-aprobado-20261109]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify original module and actual game integration
+        run: |
+          set -euo pipefail
+          node --check modules/resultado-fabricacion/v014029/resultado-fabricacion-v014029.js
+          node modules/resultado-fabricacion/v014029/test-v014029.cjs
+          node --check preparacion_control.js
+          node --check mercenary_4t_runtime_ml06.js
+          node tests/mercenary_ml08_slot_ora.cjs
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text()
+          assert 'resultado-fabricacion-v014029.js?v=032' in s
+          assert 'resultado-fabricacion-v014029.css?v=032' in s
+          assert '${renderGenesisApprovedResultV032(item)}' in s
+          assert 'GenesisCraftResultV014029' in s
+          assert 'mercenary_4t_runtime_ml06.js?v=ML13' in s
+          assert 'genesisCompareORA' in Path('preparacion_control.js').read_text()
+          print('V032 static integration PASS; visual gameplay not yet tested')
+          PY
