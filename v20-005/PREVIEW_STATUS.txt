@@ -1,0 +1,1 @@
+V20.005 experimental candidate: starter ingots, aligned comparison, standalone sword GLB. Visual QA and VFX binding pending.

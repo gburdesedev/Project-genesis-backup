@@ -1,0 +1,96 @@
+/* Project Genesis V014.032 — Runtime de Comparación V5.
+   Pestañas y 8 canales = PNG originales, no reconstruidos por CSS.
+   Sin logo adicional. La geometría de las pantallas maestras se mantiene 16:9. */
+.modal.preparationModal.gCmpV032Modal{
+ width:min(1820px,calc(100vw - 12px),calc((100dvh - 12px)*1672/941))!important;
+ height:auto!important;max-width:100%!important;max-height:calc(100dvh - 12px)!important;
+ aspect-ratio:1672/941!important;overflow:hidden!important;padding:0!important;
+ border:0!important;border-radius:0!important;background:#050608!important;
+}
+.gCmpRoot{--cmp-gold:#cb964a;--cmp-muted:#aab1ad;position:relative;container-type:inline-size;
+ aspect-ratio:1672/941;width:100%;height:100%;overflow:hidden;isolation:isolate;
+ font-family:Georgia,"Times New Roman",serif;color:#f2dcb4;
+ background:radial-gradient(ellipse at 50% 35%,#182029 0,#090c12 47%,#030509 80%);
+ border:clamp(2px,.27cqw,5px) ridge #a47734;box-shadow:inset 0 0 25px #000,inset 0 0 0 2px #f4bd6345}
+.gCmpRoot *{box-sizing:border-box;}
+.gCmpRoot button,.gCmpRoot select{font:inherit;cursor:pointer;color:inherit}
+.gCmpRoot button:focus-visible,.gCmpRoot select:focus-visible{outline:2px solid #ffe6a0;outline-offset:2px}
+.gCmpRoot:before{content:"";position:absolute;left:1%;right:1%;top:11.1%;height:1px;background:linear-gradient(90deg,transparent,#e3b76f,#f7d287,#e3b76f,transparent)}
+/* V20.005: Comparacion uses the same 1820px maximum panel width as Preparacion.\n   Keep the approved 1672x941 comparison artboard and original ORA tab coordinates.\n   Cabecera ORA compartida con Preparacion / Inventario V05.
+   Coordenadas comprobadas en lienzo 1672x941. No estirar las cuatro pestanas
+   a columnas iguales: cada PNG tiene su propia anchura original. */
+.gCmpNav{position:absolute;inset:0;z-index:5;width:100%;height:100%;display:block;pointer-events:none}
+.gCmpTab{background:none!important;border:0!important;padding:0!important;position:absolute;top:calc(39 / 941 * 100%);height:calc(86 / 941 * 100%);min-width:0;overflow:visible;pointer-events:auto}
+.gCmpTab:nth-child(1){left:calc(281 / 1672 * 100%);width:calc(270 / 1672 * 100%)}
+.gCmpTab:nth-child(2){left:calc(551 / 1672 * 100%);width:calc(294 / 1672 * 100%)}
+.gCmpTab:nth-child(3){left:calc(845 / 1672 * 100%);width:calc(301 / 1672 * 100%)}
+.gCmpTab:nth-child(4){left:calc(1147 / 1672 * 100%);width:calc(274 / 1672 * 100%)}
+.gCmpTab img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
+.gCmpTab.is-active:after{content:"";position:absolute;left:15%;right:15%;bottom:5%;height:3px;background:#ffc66c;box-shadow:0 0 12px #ffc66b}
+.gCmpTab:hover img{filter:brightness(1.15)}
+.gCmpMain{position:absolute;top:13%;left:1%;width:98%;height:74.6%;display:grid;
+ grid-template-columns:20.2% 12.8% 31% 12.8% 20.2%;gap:.75%;align-items:stretch}
+.gCmpListColumn,.gCmpViewer,.gCmpCenter{min-width:0;min-height:0;position:relative}
+.gCmpListColumn{display:flex;flex-direction:column;padding:.6cqw .65cqw .5cqw;
+ border:2px ridge #a77a38;background:linear-gradient(#090b10,#080b10);box-shadow:inset 0 0 24px #000;}
+.gCmpListColumn h3{margin:0 0 .5cqw;padding:.35cqw 0;text-align:center;
+ color:#f6d48d;border-bottom:1px solid #a4783d;font-size:1.5cqw;font-weight:600;white-space:nowrap}
+.gCmpFamilyLabel{display:flex;align-items:center;gap:.5cqw;font-size:1.12cqw;white-space:nowrap;margin:.15cqw 0 .65cqw}
+.gCmpFamilyLabel select{min-width:0;width:100%;padding:.35cqw .3cqw;border:1px solid #bb863c;background:#101115;color:#f0d7a6}
+.gCmpFamilyLabel select option{color:#eee;background:#0b0e14}
+.gCmpSlots{flex:1;min-height:0;overflow-y:auto;scrollbar-color:#e1a84e #15100c;scrollbar-width:thin;
+ display:flex;flex-direction:column;gap:.32cqw;padding-right:.2cqw;}
+.gCmpSlot{flex:0 0 3.05cqw;min-height:24px;border:1px solid #b98741;background:#101014;
+ box-shadow:inset 0 0 0 1px #5b411d,0 0 2px #674013;display:flex;align-items:center;text-align:left;
+ gap:.55cqw;padding:.12cqw .35cqw;overflow:hidden;color:#e8d6b3;font-size:1.02cqw}
+.gCmpSlot:hover,.gCmpSlot.is-selected{border-color:#ffcf70;background:#2d2115;box-shadow:inset 0 0 6px #d9972440,0 0 8px #d5974e80}
+.gCmpSlot.is-empty{opacity:.36}
+.gCmpSlotThumb{display:flex;align-items:center;justify-content:center;flex:0 0 2.6cqw;height:2.6cqw;
+ background:#030508;border:1px solid #755629;overflow:hidden}
+.gCmpSlotThumb img{width:100%;height:100%;object-fit:contain}
+.gCmpSlotFallback{color:#dcb16b}
+.gCmpSlotText{min-width:0;display:flex;flex-direction:column;gap:.1cqw}
+.gCmpSlotText b{font-size:.91cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.gCmpSlotText small{color:#bca77e;font-size:.77cqw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gCmpListCount{font-size:.8cqw;color:#c9aa72;text-align:center;margin-top:.35cqw;white-space:nowrap}
+.gCmpViewer{display:flex;flex-direction:column}
+.gCmpViewer h3,.gCmpCenter h2{font:600 1.55cqw Georgia,serif;text-align:center;color:#e8c488;
+ text-shadow:0 2px 8px #000;margin:.2cqw 0 .65cqw;white-space:nowrap}
+.gCmpDrop{flex:1;min-height:0;border:2px ridge #c59442;position:relative;overflow:hidden;
+ background:radial-gradient(ellipse at 50% 50%,#0e151d 0,#020407 75%);
+ box-shadow:inset 0 0 15px #030304,0 0 5px #8f662860;display:flex;justify-content:center;align-items:center}
+.gCmpEmpty{color:#bda985;opacity:.85;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1cqw;
+ text-align:center;font-size:1.05cqw;padding:.6cqw;pointer-events:none}
+.gCmpEmptyMark{font-size:3.8cqw;opacity:.25}
+.gCmpHeroArt{position:absolute;inset:.6cqw .1cqw 4cqw;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.gCmpHeroArt img{width:100%;height:100%;object-fit:contain;max-height:100%;filter:drop-shadow(0 0 4px #ffffff30)}
+.gCmpHeroArt model-viewer{width:100%;height:100%;background:transparent}
+.gCmpHeroCaption{position:absolute;left:.15cqw;right:.15cqw;bottom:.6cqw;display:flex;flex-direction:column;text-align:center;
+ gap:.25cqw;color:#f0d29c;overflow:hidden;font-size:.93cqw;background:#05080acc;padding:.25cqw}
+.gCmpHeroCaption b,.gCmpHeroCaption span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gCmpHeroCaption span{font-size:.8cqw;color:#bfa883}
+.gCmpCenter{display:flex;flex-direction:column}
+.gCmpCenter h2{font-size:1.8cqw;margin-top:.1cqw;}
+.gCmpChannelHeader{display:grid;grid-template-columns:13.5% 55% 15% 16.5%;font-size:.8cqw;color:#dcb776;
+ text-align:center;padding:.2cqw 0;border-bottom:1px solid #a57b3f}
+.gCmpChannelRows{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:.17cqw;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#c19243 #121115}
+.gCmpChannelRow{width:100%;display:grid;grid-template-columns:13.5% 55% 15% 16.5%;
+ align-items:center;min-height:0;flex:0 0 min(3.75cqw,12%);text-align:center;
+ border-bottom:1px solid #9a743c50;background:linear-gradient(90deg,transparent,#12131550,transparent)}
+.gCmpORA{display:block;width:100%;height:100%;object-fit:contain;min-width:0;pointer-events:none}
+.gCmpChannelValue,.gCmpDelta{font-size:1.17cqw;white-space:nowrap;color:#f5ddb0}
+.gCmpDelta.is-positive{color:#78e18c}.gCmpDelta.is-negative{color:#fa806f}.gCmpDelta.is-neutral{color:#f3d6a0}
+.gCmpNoChannels{padding:4cqw 0;text-align:center;color:#c7a87b}
+.gCmpFooter{position:absolute;bottom:1%;left:1%;right:1%;height:10.1%;display:flex;align-items:center;
+ border:2px ridge #af7d39;background:linear-gradient(180deg,#120f0d,#080b12);
+ padding:1.1cqw;gap:1cqw;box-shadow:inset 0 0 15px #000}
+.gCmpNotice{flex:1;min-width:0;color:#e3c799;font-size:1.16cqw;line-height:1.25}
+.gCmpContinue{flex:0 0 auto;padding:.62cqw 1.1cqw;border:2px ridge #b58943;
+ background:#261a10;color:#ffdc9b!important;font-size:1.1cqw;white-space:nowrap}
+.gCmpContinue:hover{background:#422a14}
+.gCmpContinue:disabled{cursor:not-allowed;opacity:.35}
+@media (max-width:700px){
+ .gCmpSlot{min-height:16px}
+ .gCmpFamilyLabel{font-size:1.12cqw}
+ .gCmpListCount{font-size:.78cqw}
+}
