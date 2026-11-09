@@ -74,11 +74,30 @@
    board.querySelectorAll('img.gApprovedMaterialArt').forEach(cleanMaterialPoster);
  }
  function itemFamily(item){const raw=String(item?.family||item?.recipeFamily||item?.recipe||'').toLowerCase();return /escud/.test(raw)?'Escudos':/espad/.test(raw)?'Espadas':'Creaciones'}
+ const APPROVED_SWORD_POSTER='./assets/playcanvas/approved/equipment/espada_v03_hierro_v175_v12b_cycles_hdri32.png';
+ function creationPoster(item){
+   const recipe=String(item?.recipe||'').toLowerCase();
+   if(item?.thumbnail||item?.poster)return String(item.thumbnail||item.poster);
+   if(/espada_hierro/.test(recipe))return APPROVED_SWORD_POSTER;
+   return '';
+ }
+ function creationModel(item){
+   const raw=item?.modelAsset||item?.asset?.glb||item?.modelUrl||'';
+   return typeof raw==='string'&&/^\\.?\\/?assets\\/[\\w./-]+\\.glb(?:\\?[^"'<>]*)?$/i.test(raw)&&!raw.includes('..')?raw:'';
+ }
  function entryView(e,ctx,hero){
    if(e.material)return materialVisual(e.name,hero);
-   return hero?(typeof ctx.renderAsset==='function'?ctx.renderAsset(e.item):''):
-     (e.item?.thumbnail||e.item?.poster?`<img src="${esc(e.item.thumbnail||e.item.poster)}" alt="${esc(e.name)}">`:
-       '<span class="gApprovedItemGlyph">✦</span>');
+   const poster=creationPoster(e.item);
+   if(!hero){
+     if(poster)return '<img class="gApprovedCreationThumb" src="'+esc(poster)+'" alt="'+esc(e.name)+'" loading="lazy">';
+     const rendered=typeof ctx.renderAsset==='function'?ctx.renderAsset(e.item):'';
+     return rendered||'<span class="gApprovedItemGlyph">✦</span>';
+   }
+   const model=creationModel(e.item);
+   if(model&&!window.GenesisDevice?.safePreviews)
+     return '<model-viewer class="gApprovedCreation360" src="'+esc(model)+'" alt="'+esc(e.name)+'" camera-controls auto-rotate interaction-prompt="none" disable-zoom camera-orbit="25deg 75deg auto"'+(poster?' poster="'+esc(poster)+'"':'')+'></model-viewer><span class="gApprovedRotationHint">Girar objeto · 360°</span>';
+   return (typeof ctx.renderAsset==='function'?ctx.renderAsset(e.item):(poster?'<img src="'+esc(poster)+'" alt="'+esc(e.name)+'">':''))+
+     '<span class="gApprovedRotationHint">'+(window.GenesisDevice?.safePreviews?'Vista estática en modo seguro':'Vista 360° disponible cuando exista GLB aprobado')+'</span>';
  }
  function mount(tab,ctx,nav,body,attrs=''){
    const html=`<div id="genesisApprovedBoard" class="gApprovedBoard gApproved-${tab}" data-screen="${tab}" data-approved-source="${esc(ARTS[tab])}" ${attrs} style="background-image:url('${ARTS[tab]}')">${tabs()}${body}${hit('Cerrar',1603,0,69,36)}</div>`;
@@ -100,7 +119,7 @@
    const families=['Materiales','Espadas','Escudos'];
    if(!families.includes(state.family))state.family='Materiales';
    const entries=state.family==='Materiales'?stock.map(([name,qty])=>({key:'m:'+name,name,qty:Number(qty),material:true})):
-     creations.filter(item=>itemFamily(item)===state.family).map((item,i)=>({key:'c:'+String(item.id||i),name:item.name,material:false,item}));
+     creations.map((item,i)=>({item,i})).filter(({item})=>itemFamily(item)===state.family).map(({item,i})=>({key:'c:'+String(item.id||i),name:item.name,material:false,item}));
    const maxPage=Math.max(0,Math.ceil(entries.length/20)-1);state.page=Math.min(state.page,maxPage);
    const page=entries.slice(state.page*20,state.page*20+20);
    if(!page.some(e=>e.key===state.selected))state.selected=page[0]?.key||null;
