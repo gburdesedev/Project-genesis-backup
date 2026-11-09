@@ -858,7 +858,10 @@ queueMicrotask(() => {
     const marketStockBefore = {...playerInventory};
     const result = originalChest(...args);
     if (!before && chestOpen && craftSession) {
-      playerInventory = prep.rawStock(craftSession.requiredStock || craftSession.stock);
+      // V20.005 demo fast-start: the chest delivers ready-to-craft ingots.
+      // Do not alter recipes, approved material assets or the Preparation minigame.
+      // Only this initial chest stock is changed; the rest of the game stays intact.
+      playerInventory = { ...(craftSession.requiredStock || craftSession.stock) };
       for (const [material, quantity] of Object.entries(marketStockBefore)) {
         if (Number.isSafeInteger(quantity) && quantity > 0) {
           playerInventory[material] = (playerInventory[material] || 0) + quantity;
@@ -866,7 +869,7 @@ queueMicrotask(() => {
       }
       refreshInventorySummary();
       const body = modalBox.querySelector('.dialogueBody p');
-      if (body) body.textContent = selectedProfession==='Herrero'?'El baúl contiene únicamente el lote para tus dos primeras espadas. Abrí Inventario (TAB o INV), prepará el mineral para conseguir lingotes y fabricá ambas espadas. Más adelante, los materiales del escudo se obtienen gratis en el mercado.':'El baúl contiene materias primas para la sesión. Abrí el inventario con TAB o INV y comprobá el lote. Después, en la estación de trabajo, usá Preparación para obtener los materiales que necesitan las fórmulas.';
+      if (body) body.textContent = selectedProfession==='Herrero'?'El baúl contiene únicamente el lote para tus dos primeras espadas. Abrí Inventario (TAB o INV), los lingotes de hierro ya están preparados; fabricá directamente ambas espadas. Más adelante, los materiales del escudo se obtienen gratis en el mercado.':'El baúl contiene los materiales de la sesión listos para fabricar. Abrí Inventario con TAB o INV y comprobá el lote.';
     }
     return result;
   };
