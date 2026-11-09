@@ -29,7 +29,7 @@ jobs:
           ref: 031034df33e496e1dd7107d6dac7e6cf5496e42e
           path: approved-source
           persist-credentials: false
-          lfs: true
+          lfs: false
       - name: Preflight original backup, asset identity and preserve production game
         shell: bash
         run: |
