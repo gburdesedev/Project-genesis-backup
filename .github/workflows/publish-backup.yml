@@ -1,0 +1,61 @@
+name: Publish independent Genesis backup
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-backup.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  copy-and-publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout destination backup repository
+        uses: actions/checkout@v4
+        with:
+          path: destination
+          persist-credentials: true
+      - name: Checkout frozen original game snapshot
+        uses: actions/checkout@v4
+        with:
+          repository: gburdesedev/Project-genesis
+          ref: snapshot/backup-main-20261109
+          path: source
+          persist-credentials: false
+          lfs: true
+      - name: Confirm exact source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = "010be3f6206c0e340a4fe5c5cc42f7d088c62b81"
+          test -s source/index.html
+          grep -q 'Project Genesis v0.14.028' source/index.html
+          echo "Verified frozen snapshot 010be3f"
+      - name: Copy game to destination main without deleting workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a --exclude=.git --exclude=.github --exclude=previews --exclude=node_modules source/ destination/
+          cd destination
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: copy frozen playable Project Genesis v014028 backup"
+            git push origin HEAD:main
+          fi
+      - name: Create or refresh independent gh-pages branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd destination
+          git fetch origin gh-pages || true
+          git switch --orphan publish-backup-pages
+          git rm -r --cached . >/dev/null 2>&1 || true
+          git add -A
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Publish isolated backup preview'
+          git push --force origin HEAD:gh-pages
+          echo "Pages source branch ready: gh-pages / (root)"
+          echo "Enable Settings > Pages > Deploy from a branch > gh-pages / (root) if Pages is not configured."
