@@ -1,0 +1,45 @@
+name: V20.005 Playwright real deployed screenshots
+on:
+  push:
+    branches: [qa/v20-005-playwright-captures-20261109]
+    paths: ['.github/workflows/v20-005-live-screenshots.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  screenshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: qa/v20-005-playwright-captures-20261109
+          persist-credentials: true
+      - name: Install real Playwright browser
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.58.2
+          npx playwright install --with-deps chromium
+      - name: Open deployed V20.005 and capture real browser
+        run: |
+          set -euo pipefail
+          node tools/qa/v20_005_live_capture.cjs
+          test -s qa-results/v20-005-live/01-inicio-real.png
+          test -s qa-results/v20-005-live/report.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('qa-results/v20-005-live/report.json')
+          r=json.loads(p.read_text())
+          print('QA_HTTP',r.get('httpStatus'),'BUILD',r.get('build'),'SCREENS',len(r.get('captures',[])))
+          for e in r.get('issues',[])[:12]:print('QA_ISSUE',e[:450])
+          PY
+      - name: Persist actual captured PNGs and diagnostic report on isolated QA branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add qa-results/v20-005-live
+          git diff --cached --quiet && exit 0
+          git commit -m 'qa: real Playwright screenshots of deployed V20.005 and browser diagnostics'
+          git push origin HEAD:qa/v20-005-playwright-captures-20261109
