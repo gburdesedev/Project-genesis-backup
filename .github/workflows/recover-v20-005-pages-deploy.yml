@@ -1,0 +1,52 @@
+name: Recover stuck V20.005 Pages deployment
+on:
+  push:
+    branches: [experiment/v20-005-prepared-ingots-20261109]
+    paths: ['.github/workflows/recover-v20-005-pages-deploy.yml']
+  workflow_dispatch:
+permissions:
+  actions: write
+  contents: write
+jobs:
+  cancel-stuck-and-redeploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Cancel stuck Pages deployment run 42717193189
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo="${{ github.repository }}"
+          run=42717193189
+          state=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$repo/actions/runs/$run")
+          status=$(echo "$state" | python3 -c 'import sys,json;print(json.load(sys.stdin)["status"])')
+          echo "Previous deployment status: $status"
+          if [ "$status" != completed ]; then
+            curl -fsSL -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$repo/actions/runs/$run/cancel" -o /tmp/cancel-response
+            echo "Cancel request accepted for $run"
+          fi
+          for i in $(seq 1 30); do
+            state=$(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$repo/actions/runs/$run")
+            status=$(echo "$state" | python3 -c 'import sys,json;d=json.load(sys.stdin);print(d["status"],d.get("conclusion"))')
+            echo "Old deployment: $status"
+            if [[ "$status" == completed* ]]; then break; fi
+            sleep 5
+          done
+          [[ "$status" == completed* ]] || { echo 'Old deploy still active; refusing competing release'; exit 1; }
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          persist-credentials: true
+      - name: Verify existing V20.005 and request fresh Pages deployment
+        run: |
+          set -euo pipefail
+          test -s v20-005/index.html
+          grep -q 'project-genesis-backup-v20.005-candidate' v20-005/index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          printf 'V20.005 Pages recovery from run 42717193189. Candidate files unchanged.\n' > v20-005/DEPLOY_RECOVERY_20261109.txt
+          git add v20-005/DEPLOY_RECOVERY_20261109.txt
+          git commit -m 'deploy(v20.005): retrigger Pages after cancelling stuck deployment'
+          git push origin HEAD:gh-pages
