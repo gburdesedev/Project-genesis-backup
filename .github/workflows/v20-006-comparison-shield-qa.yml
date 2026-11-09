@@ -1,0 +1,45 @@
+name: V20.006 comparison and genuine shield regression checks
+on:
+  push:
+    branches: [experiment/v20-006-comparison-shield-20261109]
+    paths: ['.github/workflows/v20-006-comparison-shield-qa.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate actual local shield GLB, approved images, CSS, and JS
+        run: |
+          set -euo pipefail
+          node --check genesis_comparacion_v032.js
+          node --check preparacion_control.js
+          node --check genesis_fabricacion_modular_v004.js
+          test -s assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb
+          test -s assets/ui/fabricaciones_ora_v004/V015_REAL_SHIELD_ICON_RGBA.png
+          test -s assets/playcanvas/approved/equipment/espada_v03_hierro_v175_v12b_cycles_hdri32.png
+          python3 - <<'PY'
+          from pathlib import Path
+          import struct,json
+          p=Path('assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb')
+          b=p.read_bytes()
+          assert b[:4]==b'glTF' and struct.unpack_from('<I',b,4)[0]==2 and struct.unpack_from('<I',b,8)[0]==len(b)
+          n,t=struct.unpack_from('<I4s',b,12)
+          assert t==b'JSON'
+          data=json.loads(b[20:20+n])
+          assert len(data['meshes'])>=1
+          html=Path('index.html').read_text()
+          cmp=Path('genesis_comparacion_v032.js').read_text()
+          css=Path('genesis_comparacion_v032.css').read_text()
+          assert "Genesara/genesara-web" not in html
+          assert "escudo_hierro_v015_PBR2K_WEBP_v022.glb" in html
+          assert 'item.recipe===\'escudo_hierro\'' in html
+          assert 'V015_REAL_SHIELD_ICON_RGBA.png' in cmp
+          assert 'espada_v03_hierro_v175_v12b_cycles_hdri32.png' in cmp
+          assert 'width:min(1672px' in css
+          assert 'top:15.5%' in css
+          print('V20_006_QA_PASSED shield bytes',len(b),'meshes',len(data['meshes']))
+          PY
