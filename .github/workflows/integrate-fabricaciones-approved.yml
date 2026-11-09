@@ -1,4 +1,4 @@
-name: Integrate approved Fabricaciones V07 ORA V004 into backup
+name: Integrate approved Fabricaciones V004 into independent backup
 on:
   push:
     branches: [main]
@@ -6,78 +6,118 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: backup-fabricaciones-v004-main
+  cancel-in-progress: false
 jobs:
-  integrate:
+  integrate-and-publish:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 30
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out ONLY the independent backup repository
+        uses: actions/checkout@v4
         with:
           path: backup
-      - uses: actions/checkout@v4
+          persist-credentials: true
+          fetch-depth: 1
+      - name: Fetch exact approved Fabricaciones candidate (pinned SHA)
+        uses: actions/checkout@v4
         with:
           repository: gburdesedev/Project-genesis
-          ref: experiment/v014030-fabricaciones-ora-v004-runtime-20261109
+          ref: 031034df33e496e1dd7107d6dac7e6cf5496e42e
           path: approved-source
           persist-credentials: false
           lfs: true
-      - name: Integrate fabrication screen only, preserving V014.029 result
+      - name: Preflight original backup, asset identity and preserve production game
         shell: bash
         run: |
           set -euo pipefail
+          test "$(git -C approved-source rev-parse HEAD)" = '031034df33e496e1dd7107d6dac7e6cf5496e42e'
           test -s backup/index.html
           grep -q 'renderGenesisHistoricCreationResult' backup/index.html
-          mkdir -p backup/assets/ui/fabricaciones_ora_v004
-          rsync -a approved-source/assets/ui/fabricaciones_ora_v004/ backup/assets/ui/fabricaciones_ora_v004/
-          cp approved-source/genesis_fabricacion_modular_v004.js backup/
-          cp approved-source/genesis_fabricacion_modular_v004.css backup/
+          grep -q 'Project Genesis v0.14.029' backup/index.html
+          test -s approved-source/assets/ui/fabricaciones_ora_v004/Fabricaciones_Base_Limpia_V004.png
+          test -s approved-source/assets/ui/fabricaciones_ora_v004/Fabricaciones_Runtime_V004.ora
+          test -s approved-source/assets/ui/fabricaciones_ora_v004/05_marco_receta_seleccionada_ORIGINAL.png
+          test -s approved-source/assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb
+          test -s approved-source/assets/playcanvas/approved/materials/iron/v175/iron_v175_transparent.png
+          test -s approved-source/tests/fabricaciones_v004_runtime_qa.cjs
+          mkdir -p backup/assets/ui/fabricaciones_ora_v004 backup/tests
+          cp -a approved-source/assets/ui/fabricaciones_ora_v004/. backup/assets/ui/fabricaciones_ora_v004/
+          cp approved-source/genesis_fabricacion_modular_v004.js approved-source/genesis_fabricacion_modular_v004.css backup/
+          cp approved-source/fabricaciones-v004-preview.html backup/
+          cp approved-source/tests/fabricaciones_v004_runtime_qa.cjs backup/tests/
+      - name: Selectively enable V004 fabrication screen ONLY; no other game menus changed
+        shell: bash
+        run: |
+          set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
           p=Path('backup/index.html')
           s=p.read_text()
-          assert 'Project Genesis v0.14.029' in s
+          assert s.count('<head>')==1
           assert 'genesis_fabricacion_modular_v004.js' not in s
-          needle='<head>'
-          assert needle in s
-          s=s.replace(needle,needle+"""
-          <link rel="stylesheet" href="./genesis_fabricacion_modular_v004.css?v=004.1">
+          addon='''<link rel="stylesheet" href="./genesis_fabricacion_modular_v004.css?v=004.5">
           <script>window.GenesisExperimentalFabricacionV004=true;</script>
-          <script src="./genesis_fabricacion_modular_v004.js?v=004.1"></script>
-          """,1)
-          p.write_text(s)
+          <script src="./genesis_fabricacion_modular_v004.js?v=004.5"></script>'''
+          p.write_text(s.replace('<head>','<head>\n'+addon,1))
           p=Path('backup/genesis_ui_approved.js')
           s=p.read_text()
-          needle='function fabrications(ctx,nav){'
-          assert s.count(needle)==1
+          mark='function fabrications(ctx,nav){'
+          assert s.count(mark)==1
           assert 'GenesisFabricacionModular?.render' not in s
-          s=s.replace(needle,needle+"""
+          s=s.replace(mark,mark+'''
             if(window.GenesisFabricacionModular?.render && window.GenesisExperimentalFabricacionV004===true){
               return window.GenesisFabricacionModular.render(ctx,nav,mount);
             }
-          """,1)
+          ''',1)
           p.write_text(s)
           PY
-          node --check backup/genesis_ui_approved.js
           node --check backup/genesis_fabricacion_modular_v004.js
+          node --check backup/genesis_ui_approved.js
+          node --check backup/tests/fabricaciones_v004_runtime_qa.cjs
           grep -q 'renderGenesisHistoricCreationResult' backup/index.html
           grep -q 'GenesisFabricacionModular.render' backup/genesis_ui_approved.js
-          test -s backup/assets/ui/fabricaciones_ora_v004/Fabricaciones_Base_Limpia_V004.png
-      - name: Check source-approved fabrication screen and layout
-        shell: bash
-        run: |
-          set -euo pipefail
-          node --check approved-source/tests/fabricaciones_v004_runtime_qa.cjs
-          cp approved-source/tests/fabricaciones_v004_runtime_qa.cjs backup/tests/
-          cd backup
-          node tests/fabricaciones_v004_runtime_qa.cjs
-      - name: Publish only after validation
+      - name: Install actual Chromium QA scripts
+        run: npm install --prefix /tmp/genesis-fabricacion-v004-qa playwright@1.56.1
+      - name: Verify both recipes, V175 textures, real V015 and selected frame in browser
         working-directory: backup
+        env:
+          NODE_PATH: /tmp/genesis-fabricacion-v004-qa/node_modules
+        run: node tests/fabricaciones_v004_runtime_qa.cjs
+      - name: Verify unchanged approved V014.029 Result screen when test available
+        working-directory: backup
+        env:
+          NODE_PATH: /tmp/genesis-fabricacion-v004-qa/node_modules
+        run: |
+          if test -f tests/v014029_historic_result_qa.cjs; then
+            node tests/v014029_historic_result_qa.cjs
+          else
+            echo 'Historic result E2E fixture missing: canonical result existence verified in index.html, end-to-end Result remains unverified'
+          fi
+      - name: Preserve QA screenshots before any publication
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: genesis-backup-fabricaciones-v004-qa
+          path: |
+            backup/previews/fabricaciones-v004-runtime/
+            backup/previews/v014029-historic-result/
+          retention-days: 14
+      - name: Commit selected Fabricaciones files to backup/main and fast-forward backup/gh-pages
         shell: bash
+        working-directory: backup
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html genesis_ui_approved.js genesis_fabricacion_modular_v004.js genesis_fabricacion_modular_v004.css assets/ui/fabricaciones_ora_v004 tests/fabricaciones_v004_runtime_qa.cjs
-          git commit -m 'feat(backup): integrate approved Fabricaciones V07 ORA V004 screen'
-          git push origin HEAD:main
-          git push --force origin HEAD:gh-pages
+          git add index.html genesis_ui_approved.js genesis_fabricacion_modular_v004.js genesis_fabricacion_modular_v004.css fabricaciones-v004-preview.html assets/ui/fabricaciones_ora_v004/ tests/fabricaciones_v004_runtime_qa.cjs
+          if ! git diff --cached --quiet; then
+            git commit -m 'feat(backup/main): integrate approved Fabricaciones ORA V004 only'
+            git push origin HEAD:main
+          fi
+          # gh-pages is an ancestor of backup main; never force-push or overwrite it.
+          git push origin HEAD:gh-pages
+          echo 'Fabricaciones V004 published to backup main + gh-pages, original game main unchanged'
