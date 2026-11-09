@@ -36,6 +36,10 @@ async function grab(page,name){
   }));
   status.initialState=state;
   console.log('STATE_INITIAL',JSON.stringify(state));
+  if(process.env.GENESIS_CAPTURE_INTRO_ONLY==='1'){
+    status.note='Real public page captured; deeper route test separated to prevent browser/GPU failure from losing photos';
+    return;
+  }
   if(await page.locator('[data-profession="Herrero"]').count()){
    await page.locator('[data-profession="Herrero"]').click({timeout:30000});
    status.clickedHerrero=true;
