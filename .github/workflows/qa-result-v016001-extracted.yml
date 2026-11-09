@@ -1,0 +1,19 @@
+name: QA extracted working V016.001 fabrication result
+on:
+  push:
+    branches: [experiment/v20-005-recover-result-v016001-20261109]
+    paths: ['.github/workflows/qa-result-v016001-extracted.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Original V016.001 extracted result verification
+        run: |
+          set -euo pipefail
+          node --check modules/resultado_v016001/genesis_result_dynamic_v001.js
+          node modules/resultado_v016001/test_recovered_result.cjs
