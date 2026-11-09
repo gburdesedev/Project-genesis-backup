@@ -60,8 +60,8 @@
     // The object owns its actual family. Fallback is the existing recipe name,
     // never a fixed per-profession menu list.
     const raw=String(item.family || item.recipeFamily || item.recipe || item.category || 'Creaciones').trim();
-    if (/^espada(s)?\b/i.test(raw)) return 'Espadas';
-    if (/^escudo(s)?\b/i.test(raw)) return 'Escudos';
+    if (/espad|sword/i.test(raw)) return 'Espadas';
+    if (/escud|shield/i.test(raw)) return 'Escudos';
     return raw;
   }
   function channelSummary(item) {
@@ -148,10 +148,12 @@
       const entry=visible[i];
       if(!entry)return '<button class="genInvSlot" disabled aria-label="Casilla vacía"></button>';
       const selected=entry.key===state.selectedKey;
+      const liveArt=!entry.material&&typeof ctx.renderAsset==='function'?ctx.renderAsset(entry.item):'';
+      const liveImg=typeof liveArt==='string'?liveArt.match(/<img\\b[^>]*\\bsrc=["']([^"']+)["']/i):null;
+      const artSrc=entry.material?'':(entry.item.thumbnail||entry.item.poster||liveImg?.[1]||'');
       const content=entry.material?materialArt(entry.name,false):
-        (entry.item.thumbnail || entry.item.poster
-          ? '<img src="'+esc(entry.item.thumbnail||entry.item.poster)+'" alt="" loading="lazy" draggable="false">'
-          : '<span class="genInvCreationGlyph" aria-hidden="true"></span>');
+        (artSrc?'<img src="'+esc(artSrc)+'" alt="'+esc(entry.name)+'" loading="lazy" draggable="false">':
+         '<span class="genInvCreationGlyph" aria-hidden="true"></span>');
       return '<button class="genInvSlot'+(selected?' selected':'')+'" data-select="'+i+'" aria-label="'+esc(entry.name)+'" aria-pressed="'+selected+'"><span class="genInvSlotArtwork">'+content+'</span><span class="genInvSlotQty">'+esc(entry.material?entry.qty:(entry.rarity||''))+'</span></button>';
     }).join('');
     const html='<div class="genInv" id="genInv">'+
