@@ -541,14 +541,8 @@
       halt();ctx.mode='workspace';ctx.tab=tab;
       if(window.GenesisComparacionV032.render(ctx,approvedUiNav()))return;
     }
-    // V20.001: usar el inventario de creaciones real antes del fallback antiguo.
-    if(tab==='Inventario'&&ctx.getItems&&window.GenesisInventory16?.render){
-      halt();ctx.mode='workspace';ctx.tab=tab;
-      window.GenesisInventory16.render(ctx,{renderMenu,renderWorkspace,sheetForItem});
-      return;
-    }
     // Único arte aprobado para Inventario V11 y Fabricaciones V07, sin cambiar los originales.
-    if(ctx.profession==='Herrero'&&ctx.getItems&&['Fabricaciones'].includes(tab)){
+    if(ctx.profession==='Herrero'&&ctx.getItems&&['Inventario','Fabricaciones'].includes(tab)){
       if(window.GenesisApprovedUI?.render){
         halt();ctx.mode='workspace';ctx.tab=tab;
         window.GenesisApprovedUI.render(ctx,approvedUiNav(),tab);
