@@ -14,7 +14,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check modules/resultado-fabricacion/v014029/resultado-fabricacion-v014029.js
-          node modules/resultado-fabricacion/v014029/test-v014029.cjs
+          GENESIS_INTEGRATION_TEST=1 node modules/resultado-fabricacion/v014029/test-v014029.cjs
           node --check preparacion_control.js
           node --check mercenary_4t_runtime_ml06.js
           node tests/mercenary_ml08_slot_ora.cjs
