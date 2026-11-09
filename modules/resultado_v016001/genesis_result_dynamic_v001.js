@@ -58,6 +58,13 @@
         ' camera-controls interaction-prompt="none" shadow-intensity=".75" environment-image="neutral" exposure="1.16" camera-orbit="25deg 75deg auto" alt="'+esc(s.name)+'"></model-viewer>'+
         '<span class="grViewerStatus" aria-live="polite">Modelo GLB aprobado · arrastrá para rotar</span>';
     }
+    // V20.006 adapter: retain V016.001 channel, ORA and Continue logic,
+    // but show the real V175/V12B standalone GLB already used by V20.005.
+    // This is an experimental export; never label it visually approved for the game.
+    if(s.recipe==="espada_hierro" && typeof root.GenesisResultSwordGlb==="string" && /^https:\/\//.test(root.GenesisResultSwordGlb)){
+      return '<model-viewer class="grSwordV20_006" data-result-candidate-glb="true" src="'+esc(root.GenesisResultSwordGlb)+'" poster="'+esc(approvedSwordPoster)+'" camera-controls touch-action="pan-y" interaction-prompt="none" disable-zoom shadow-intensity=".75" environment-image="neutral" exposure="1.05" camera-orbit="25deg 75deg auto" alt="'+esc(s.name)+'"></model-viewer>'+
+        '<span class="grViewerStatus">V175 V12B · GLB experimental real · arrastrá para girar</span>';
+    }
     if(s.recipe==="espada_hierro")return '<iframe class="grSwordInteractive" data-sword-v12b="true" src="./preview/v016001/genesis_sword_runtime_v001.html?v=016001" title="Inspección interactiva 3D de la espada V175 V12B" allow="fullscreen"></iframe>'+
       '<span class="grViewerStatus" aria-live="polite">V12B · Arrastrá para girar · Rueda para zoom · Fuente 3D real experimental</span>';
     // Para otros objetos, emplear exclusivamente el adaptador del juego.
