@@ -1,4 +1,4 @@
-name: Publish isolated V032 approved result preview
+name: Publish isolated V032 approved result preview (deployment)
 on:
   push:
     branches: [main]
