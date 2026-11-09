@@ -2,7 +2,7 @@ name: Publish isolated V032 approved result preview (deployment)
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/publish-v030-v031-previews.yml']
+    paths: ['.github/workflows/publish-v032-preview.yml']
   workflow_dispatch:
 permissions:
   contents: write
