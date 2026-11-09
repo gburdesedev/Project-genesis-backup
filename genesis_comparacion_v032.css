@@ -16,9 +16,16 @@
 .gCmpRoot button,.gCmpRoot select{font:inherit;cursor:pointer;color:inherit}
 .gCmpRoot button:focus-visible,.gCmpRoot select:focus-visible{outline:2px solid #ffe6a0;outline-offset:2px}
 .gCmpRoot:before{content:"";position:absolute;left:1%;right:1%;top:11.1%;height:1px;background:linear-gradient(90deg,transparent,#e3b76f,#f7d287,#e3b76f,transparent)}
-.gCmpNav{position:absolute;inset:.35% 1.3% auto 1.3%;height:10.4%;z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:.5%;align-items:stretch}
-.gCmpTab{background:none!important;border:0!important;padding:0!important;position:relative;min-width:0;overflow:visible}
-.gCmpTab img{display:block;width:100%;height:100%;object-fit:fill;pointer-events:none}
+/* Cabecera ORA compartida con Preparacion / Inventario V05.
+   Coordenadas comprobadas en lienzo 1672x941. No estirar las cuatro pestanas
+   a columnas iguales: cada PNG tiene su propia anchura original. */
+.gCmpNav{position:absolute;inset:0;z-index:5;width:100%;height:100%;display:block;pointer-events:none}
+.gCmpTab{background:none!important;border:0!important;padding:0!important;position:absolute;top:calc(39 / 941 * 100%);height:calc(86 / 941 * 100%);min-width:0;overflow:visible;pointer-events:auto}
+.gCmpTab:nth-child(1){left:calc(281 / 1672 * 100%);width:calc(270 / 1672 * 100%)}
+.gCmpTab:nth-child(2){left:calc(551 / 1672 * 100%);width:calc(294 / 1672 * 100%)}
+.gCmpTab:nth-child(3){left:calc(845 / 1672 * 100%);width:calc(301 / 1672 * 100%)}
+.gCmpTab:nth-child(4){left:calc(1147 / 1672 * 100%);width:calc(274 / 1672 * 100%)}
+.gCmpTab img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 .gCmpTab.is-active:after{content:"";position:absolute;left:15%;right:15%;bottom:5%;height:3px;background:#ffc66c;box-shadow:0 0 12px #ffc66b}
 .gCmpTab:hover img{filter:brightness(1.15)}
 .gCmpMain{position:absolute;top:13%;left:1%;width:98%;height:74.6%;display:grid;
