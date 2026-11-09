@@ -122,7 +122,7 @@
    return '';
  }
  function creationModel(item){
-   const raw=item?.modelAsset||item?.asset?.glb||item?.modelUrl||'';
+   const raw=item?.modelAsset||item?.asset?.glb||item?.modelUrl||(item?.recipe==='escudo_hierro'?'assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb':'');
    return typeof raw==='string' && (raw.startsWith('assets/')||raw.startsWith('./assets/')) && raw.split('?')[0].toLowerCase().endsWith('.glb') && !raw.includes('..') && !/[<>"']/.test(raw) ? raw : '';
  }
  function entryView(e,ctx,hero){
