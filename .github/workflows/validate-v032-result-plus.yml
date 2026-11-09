@@ -1,0 +1,52 @@
+name: QA V032 Resultado conservado + Comparacion V5
+on:
+  push:
+    branches:
+      - experiment/v014032-result-plus-comparacion-v05-20261109
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-v032-preserved:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify existing V032 result and modified comparison logic
+        run: |
+          set -euo pipefail
+          test -d v032/modules/resultado-fabricacion
+          grep -q 'modules/resultado-fabricacion' v032/index.html
+          grep -q "renderComparisonV032(ctx)" v032/preparacion_control.js
+          node --check v032/preparacion_control.js
+          node --check v032/genesis_comparacion_v032.js
+          cd v032
+          node --test tests/comparacion_v032_inventory.test.cjs
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          p=Path('assets/ui/resultado/oras')
+          items=json.loads((p/'manifest.sha256.json').read_text())['channels']
+          assert len(items)==8
+          for x in items:
+              assert hashlib.sha256((p/x['png']).read_bytes()).hexdigest()==x['png_sha256'],x['png']
+          for name in ['Inventario','Preparacion','Fabricaciones','Comparacion']:
+              assert Path('assets/ui/preparacion/01_Capas/Pestanas/Pestana_'+name+'.png').exists()
+          assert 'v0.14.032' in Path('index.html').read_text()
+          print('OK V032 Resultado + Comparison original ORAs')
+          PY
+      - name: Install Chromium QA
+        run: |
+          npm install --no-save playwright@1.58.0
+          npx playwright install chromium --with-deps
+      - name: Browser drag-drop and filter
+        run: |
+          cd v032
+          node tests/comparacion_v032_browser.mjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v032-resultado-preservado-comparacion-qa
+          path: v032/reports/v032-comparacion/
+          if-no-files-found: ignore
