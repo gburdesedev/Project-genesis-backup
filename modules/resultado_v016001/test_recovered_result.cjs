@@ -22,6 +22,6 @@ assert(!html.includes('Quemadura')&&!html.includes('Veneno'));
 assert(html.includes('preview/v016001/genesis_sword_runtime_v001.html'));
 assert(html.includes('id="resultContinue"'));
 const current=fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert(current.includes('project-genesis-backup-v20.005-candidate'));
-assert(!current.includes('modules/resultado_v016001/genesis_result_dynamic_v001.js'),'Not integrated into candidate yet');
+assert(current.includes('project-genesis-backup-v20.007-candidate'));
+assert(current.includes('modules/resultado_v016001/genesis_result_dynamic_v001.js'),'Recovered module must be wired in unified candidate');
 console.log('RECOVERED_V016001_RESULT_PASS original files+8 PNG hashes+real channels+Continue+safe isolation');
