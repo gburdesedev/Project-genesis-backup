@@ -1,1 +1,0 @@
-V20.006 experimental candidate. Validated syntax + actual shield GLB. Runtime visual approval pending; not merged to main.
