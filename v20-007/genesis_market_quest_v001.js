@@ -6,8 +6,9 @@
  const steps=Object.freeze({talk:11.25,escort:11.5,shop:11.75});
  const escortPath=Object.freeze([
   {x:.55,z:-.60},{x:.50,z:1.60},{x:.75,z:3.45},
-  {x:7.0,z:3.6},{x:7.0,z:16.0},{x:7.0,z:26.0},
-  {x:7.0,z:36.0},{x:17.0,z:36.0},
+  {x:7.0,z:3.6},{x:12.7,z:6.4},{x:15.8,z:10.8},
+  {x:16.2,z:16.0},{x:16.2,z:24.0},{x:16.2,z:31.0},
+  {x:17.0,z:36.0},
   {x:23.0,z:36.0},{x:24.25,z:35.15}
  ].map(p=>Object.freeze(p)));
  function shieldNeeds(session,inventory){
