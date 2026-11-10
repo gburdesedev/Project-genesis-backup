@@ -2,7 +2,7 @@
    Pestañas y 8 canales = PNG originales, no reconstruidos por CSS.
    Sin logo adicional. La geometría de las pantallas maestras se mantiene 16:9. */
 .modal.preparationModal.gCmpV032Modal{
- width:min(1820px,calc(100vw - 12px),calc((100dvh - 12px)*1672/941))!important;
+ width:min(1672px,calc(100vw - 12px),calc((100dvh - 12px)*1672/941))!important;
  height:auto!important;max-width:100%!important;max-height:calc(100dvh - 12px)!important;
  aspect-ratio:1672/941!important;overflow:hidden!important;padding:0!important;
  border:0!important;border-radius:0!important;background:#050608!important;
@@ -28,7 +28,7 @@
 .gCmpTab img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 .gCmpTab.is-active:after{content:"";position:absolute;left:15%;right:15%;bottom:5%;height:3px;background:#ffc66c;box-shadow:0 0 12px #ffc66b}
 .gCmpTab:hover img{filter:brightness(1.15)}
-.gCmpMain{position:absolute;top:13%;left:1%;width:98%;height:74.6%;display:grid;
+.gCmpMain{position:absolute;top:15.5%;left:1%;width:98%;height:72.1%;display:grid;
  grid-template-columns:20.2% 12.8% 31% 12.8% 20.2%;gap:.75%;align-items:stretch}
 .gCmpListColumn,.gCmpViewer,.gCmpCenter{min-width:0;min-height:0;position:relative}
 .gCmpListColumn{display:flex;flex-direction:column;padding:.6cqw .65cqw .5cqw;
@@ -94,3 +94,11 @@
  .gCmpFamilyLabel{font-size:1.12cqw}
  .gCmpListCount{font-size:.78cqw}
 }
+
+/* V20.006 comparison repairs: preserve original approved ORA tabs; prevent panel overlap. */
+.gCmpRoot{border:0;box-shadow:0 16px 65px #000e}
+.gCmpNav{z-index:9;background:linear-gradient(180deg,#060505 0%,#15100c 45%,#070605 94%,transparent 100%);height:15.5%;border-bottom:2px ridge #9f6d32}
+.gCmpMain{z-index:1}
+.gCmpSlotThumb img{width:96%;height:96%;object-fit:contain;filter:drop-shadow(0 0 3px #c3a06d66)}
+.gCmpSlotUnavailable{font-size:.55cqw;color:#bda784;text-align:center}
+.gCmpHeroArt model-viewer{min-height:0;max-height:100%;pointer-events:auto!important}
