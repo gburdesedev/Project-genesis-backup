@@ -1,0 +1,65 @@
+name: Publish isolated V20.006 comparison and shield candidate
+on:
+  push:
+    branches: [experiment/v20-006-comparison-shield-20261109]
+    paths: ['.github/workflows/publish-v20-006-comparison-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: genesis-v20-006-comparison-preview
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/v20-006-comparison-shield-20261109
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          persist-credentials: true
+      - name: Preflight comparison scripts, authentic shield and unchanged stable page
+        run: |
+          set -euo pipefail
+          node --check candidate/genesis_comparacion_v032.js
+          node --check candidate/preparacion_control.js
+          node --check candidate/genesis_fabricacion_modular_v004.js
+          test -s candidate/assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb
+          test -s candidate/assets/ui/fabricaciones_ora_v004/V015_REAL_SHIELD_ICON_RGBA.png
+          grep -q 'escudo_hierro_v015_PBR2K_WEBP_v022.glb' candidate/index.html
+          grep -q 'V015_REAL_SHIELD_ICON_RGBA.png' candidate/genesis_comparacion_v032.js
+          grep -q 'genesisSwordV12B3D' candidate/index.html
+          grep -q 'project-genesis-backup-v20.005-candidate' candidate/index.html
+          test -s site/index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          import struct,json
+          p=Path('candidate/assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb')
+          b=p.read_bytes()
+          assert b[:4]==b'glTF' and struct.unpack_from('<I',b,4)[0]==2 and struct.unpack_from('<I',b,8)[0]==len(b)
+          n,t=struct.unpack_from('<I4s',b,12)
+          assert t==b'JSON' and json.loads(b[20:20+n]).get('meshes')
+          print('AUTHENTIC_SHIELD_V015_GLTF_VERIFIED',len(b))
+          PY
+      - name: Publish candidate into isolated v20-006 without touching Pages root
+        run: |
+          set -euo pipefail
+          mkdir -p site/v20-006
+          rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --exclude='preview/' --exclude='reference/' --exclude='qa-results/' candidate/ site/v20-006/
+          printf 'V20.006 experimental candidate. Validated syntax + actual shield GLB. Runtime visual approval pending; not merged to main.\n' > site/v20-006/PREVIEW_STATUS.txt
+      - name: Commit independent preview
+        working-directory: site
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add v20-006
+          git diff --cached --quiet && exit 0
+          git commit -m 'preview(v20.006): publish isolated comparison and authentic shield repairs'
+          git push origin HEAD:gh-pages
