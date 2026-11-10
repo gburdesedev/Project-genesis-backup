@@ -7,6 +7,7 @@ name: V20.007 isolated unified comparison shield and result
 # Merchant stall anchor: verify world-bounds centering and same origin for merchant and counter.
 # Real-browser QA follow-up: inspect GLB render bounds, not just GLB bytes.
 # Fix confirmed by failed browser test: Entity.worldToLocal is not a PlayCanvas API; use inverse world matrix.
+# Browser QA found quantized AABB ~15 km: use authored GLB scale instead of auto-normalization.
 on:
   push:
     branches: [experiment/v20-007-unified-comparison-result-20261109]
@@ -96,7 +97,9 @@ jobs:
           assert 'const POS = STALL;' in merchant
           assert 'inverseParent.transformPoint(desired,new Vec3())' in merchant
           assert 'inverseParent.transformPoint(current,new Vec3())' in merchant
-          assert 'merchant-stall-anchor-fix' in html
+          assert 'merchant-quantized-scale' in html
+          assert 'const approvedScale=.92;' in merchant
+          assert 'NEVER derive a scale or placement from that runtime AABB' in merchant
           trees=Path('village_trees.js').read_text()
           assert "['maple',11.8,11.7,'plaza']" in trees
           assert "node.site.region!=='plaza'" not in trees
