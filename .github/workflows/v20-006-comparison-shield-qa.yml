@@ -35,7 +35,7 @@ jobs:
           css=Path('genesis_comparacion_v032.css').read_text()
           assert "Genesara/genesara-web" not in html
           assert "escudo_hierro_v015_PBR2K_WEBP_v022.glb" in html
-          assert 'item.recipe===\'escudo_hierro\'' in html
+          assert 'item.recipe===\'escudo_hierro\'' in html or 'item.recipe==="escudo_hierro"' in html
           assert 'V015_REAL_SHIELD_ICON_RGBA.png' in cmp
           assert 'espada_v03_hierro_v175_v12b_cycles_hdri32.png' in cmp
           assert 'width:min(1672px' in css
