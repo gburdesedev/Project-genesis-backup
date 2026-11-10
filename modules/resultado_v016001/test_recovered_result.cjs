@@ -3,7 +3,8 @@ const fs=require('fs'),path=require('path'),assert=require('node:assert/strict')
 const root=path.resolve(__dirname,'../..');
 const src=fs.readFileSync(path.join(__dirname,'genesis_result_dynamic_v001.js'),'utf8');
 const old=fs.readFileSync(path.join(root,'preview/v016001/genesis_result_dynamic_v001.js'),'utf8');
-assert.equal(src,old.replace('src="./genesis_sword_runtime_v001.html?v=016001"','src="./preview/v016001/genesis_sword_runtime_v001.html?v=016001"'));
+assert(src.includes('GenesisResultSwordGlb'), 'V007 must add the genuine V12B GLB adapter');
+assert(src.includes('preview/v016001/genesis_sword_runtime_v001.html'), 'Preserve original viewer as fallback');
 assert(fs.existsSync(path.join(root,'preview/v016001/genesis_sword_runtime_v001.html')));
 const css=fs.readFileSync(path.join(__dirname,'genesis_result_dynamic_v001.css'),'utf8');
 assert.equal(css,fs.readFileSync(path.join(root,'preview/v016001/genesis_result_dynamic_v001.css'),'utf8'));
