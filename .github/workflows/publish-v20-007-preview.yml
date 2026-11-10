@@ -1,6 +1,7 @@
 name: V20.007 isolated unified comparison shield and result
 # Regression pass: recovered renderer may add a standalone V12B GLB adapter.
 # Explicit V007 rebuild requested; preserve stable main and previous V006 candidates.
+# Presentation rebuild 2026-11-10: freeze checkpoint first, rerun QA and publish preview only.
 on:
   push:
     branches: [experiment/v20-007-unified-comparison-result-20261109]
