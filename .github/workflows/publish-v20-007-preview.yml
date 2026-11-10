@@ -38,7 +38,16 @@ jobs:
           const scripts=html.split('<script').slice(1)
             .map(x=>x.split('</script>')[0])
             .filter(x=>{const h=x.slice(0,x.indexOf('>'));return !h.includes('src=')&&!h.includes('application/json')&&!h.includes('importmap');});
-          for(const script of scripts){const body=script.slice(script.indexOf('>')+1);if(body.trim())new vm.Script(body,{filename:'index.html:inline-script'});}
+          for(const [i,script] of scripts.entries()){
+            const header=script.slice(0,script.indexOf('>'));
+            const body=script.slice(script.indexOf('>')+1);
+            if(!body.trim())continue;
+            if(header.includes('type="module"')){
+              const tmp='/tmp/genesis-inline-'+i+'.mjs';
+              fs.writeFileSync(tmp,body);
+              require('child_process').execFileSync('node',['--check',tmp],{stdio:'pipe'});
+            }else new vm.Script(body,{filename:'index.html:inline-script'});
+          }
           if(!scripts.length)throw Error('No inline scripts found to parse');
           console.log('V007_INLINE_JS_SYNTAX_PASSED',scripts.length);
           JS
