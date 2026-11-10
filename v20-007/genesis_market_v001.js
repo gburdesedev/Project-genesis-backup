@@ -5,7 +5,8 @@
 import { Entity, StandardMaterial, Color } from 'playcanvas';
 import './genesis_market_domain_v001.js?v=0.14.022';
 
-const POS = Object.freeze({x:25.5,y:0,z:36.3});
+// Merchant stands behind the approved market counter, not beside Ordan.
+const POS = Object.freeze({x:28.35,y:0,z:38.48});
 const STALL = Object.freeze({x:28.35,y:0,z:37.6});
 
 function mat(name,r,g,b,gloss=.14){
@@ -126,7 +127,7 @@ function buildMerchant(world,source){
  * are never held hostage by a model download. Original fallback is removed
  * only after the real GLB has valid renderable mesh instances.
  */
-const MERCHANT_V02_GLB='./assets/playcanvas/approved/characters/merchant_v02_75962.glb?v=0.14.022';
+const MERCHANT_V02_GLB='./assets/playcanvas/approved/characters/merchant_v02_75962.glb?v=20.007-merchant-fix';
 function loadMerchantV02(app,merchantRoot,visual){
   visual.phase='loading';
   visual.assetUrl=MERCHANT_V02_GLB;
@@ -175,6 +176,7 @@ function loadMerchantV02(app,merchantRoot,visual){
         for(const old of [...merchantRoot.children]){
           if(old!==model)old.destroy();
         }
+        console.info('Genesis merchant V02 visible behind market counter', {position:merchantRoot.getPosition(),meshes:instances.length});
         visual.phase='ready';
         visual.modelName=model.name;
         visual.meshInstances=instances.length;

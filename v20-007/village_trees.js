@@ -34,7 +34,7 @@ function exteriorSpecies() {
 const EXTERIOR_SPECIES=exteriorSpecies();
 const RAW_SITES = [
  // Shift southwest oak away from the fountain's light path, preserving trunk collision and shadows.
- ['oak',0.4,10.7,'plaza'], // Maple near the fountain removed for presentation test.
+ ['oak',0.4,10.7,'plaza'],['maple',11.8,11.7,'plaza'],
  ['linden',2.2,20.3,'plaza'],['ash',11.8,20.3,'plaza'],
  ...EXTERIOR_SPOTS.map(([x,z,region],i)=>[EXTERIOR_SPECIES[i],x,z,region])
 ];
@@ -266,7 +266,7 @@ export function mountVillageTrees(app, villageRoot, options={}){
   const stack=[visual];while(stack.length){
    const entity=stack.pop();for(const child of entity.children)stack.push(child);
    if(entity.render){
-    entity.render.castShadows=!safeMobile&&lod<2&&node.site.region!=='plaza';
+    entity.render.castShadows=!safeMobile&&lod<2;
     for(const mi of entity.render.meshInstances||[])if(windMaterials.has(mi.material))
      mi.setParameter('uGenesisWindPhase',(node.site.id*1.71)%(Math.PI*2));
    }
