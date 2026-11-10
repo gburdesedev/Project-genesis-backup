@@ -8,6 +8,7 @@ name: V20.007 isolated unified comparison shield and result
 # Real-browser QA follow-up: inspect GLB render bounds, not just GLB bytes.
 # Fix confirmed by failed browser test: Entity.worldToLocal is not a PlayCanvas API; use inverse world matrix.
 # Browser QA found quantized AABB ~15 km: use authored GLB scale instead of auto-normalization.
+# Remove stale assertion for the eliminated AABB-based center transform.
 on:
   push:
     branches: [experiment/v20-007-unified-comparison-result-20261109]
@@ -96,7 +97,6 @@ jobs:
           assert 'merchant_v02_75962.glb' in merchant
           assert 'const POS = STALL;' in merchant
           assert 'inverseParent.transformPoint(desired,new Vec3())' in merchant
-          assert 'inverseParent.transformPoint(current,new Vec3())' in merchant
           assert 'merchant-quantized-scale' in html
           assert 'const approvedScale=.92;' in merchant
           assert 'NEVER derive a scale or placement from that runtime AABB' in merchant
