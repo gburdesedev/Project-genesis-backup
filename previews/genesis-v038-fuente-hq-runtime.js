@@ -11,9 +11,10 @@ window.__genesisFountainWater=status;
 
 async function installFountainWater(){
   const element=document.getElementById('genesisFountainV011Model');
-  const app=document.getElementById('genesisApp')?.app;
-  if(!element||!app)throw new Error('Fountain model or PlayCanvas app missing');
+  if(!element)throw new Error('Fountain model missing');
   await element.ready();
+  const app=document.getElementById('genesisApp')?.app;
+  if(!app)throw new Error('PlayCanvas app missing after fountain load');
   const root=element.contentEntity;
   if(!root)throw new Error('Fountain V011 GLB was not instantiated');
   const animated=[];
