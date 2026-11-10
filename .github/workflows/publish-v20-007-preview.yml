@@ -32,6 +32,15 @@ jobs:
           node --check preparacion_control.js
           node --check genesis_fabricacion_modular_v004.js
           node --check modules/resultado_v016001/genesis_result_dynamic_v001.js
+          node - <<'JS'
+          const fs=require('fs'),vm=require('vm');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)]
+            .filter(m=>!(/\\bsrc\\s*=/.test(m[1])) && !(/\\btype\\s*=\\s*["'](?:application\\/json|importmap)["']/.test(m[1])));
+          for(const m of scripts)if(m[2].trim())new vm.Script(m[2],{filename:'index.html:inline-script'});
+          if(!scripts.length)throw Error('No inline scripts found to parse');
+          console.log('V007_INLINE_JS_SYNTAX_PASSED',scripts.length);
+          JS
           node --test modules/resultado_v016001/test_recovered_result.cjs
           node --test tests/v20_006_result_integration.cjs
           test -s assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb
