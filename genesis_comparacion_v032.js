@@ -63,8 +63,8 @@
    if(item?.recipe==="escudo_hierro")return '<img loading="lazy" alt="Escudo V015 real" src="'+SHIELD_POSTER+'">';
    try{
      const asset=typeof ctx.renderAsset==="function"?String(ctx.renderAsset(item)||""):"";
-     const m=asset.match(/<img\\b[^>]*\\bsrc=["']([^"']+)["']/i);
-     if(m&&/^(?:\\.\\/)?assets\\//.test(m[1]))return '<img loading="lazy" alt="" src="'+esc(m[1])+'">';
+     const m=asset.match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i);
+     if(m&&m[1].replace(/^\.\//,"").startsWith("assets/"))return '<img loading="lazy" alt="" src="'+esc(m[1])+'">';
    }catch(e){console.warn("[Genesis Comparacion] Miniatura no disponible",e);}
    return '<span class="gCmpSlotUnavailable" aria-label="Sin miniatura">Sin imagen</span>';
  }
