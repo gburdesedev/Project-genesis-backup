@@ -1490,7 +1490,9 @@ const EQUIP_MODEL_URLS=Object.freeze({
 });
 // V20.005 genuine standalone sword GLB from the organization's experimental equipment repository.
 const GENESIS_SWORD_V12B_GLB='https://raw.githubusercontent.com/ProjectGenesisAssets2/genesis-equipment-assets/experiment/v12b-standalone-glb-export-20261109/assets/equipment/experimental/espada_v03_v175_v12b/Genesis_Sword_Iron_V03_V175_V12B_PBR_WebGL_CANDIDATE.glb';
-const MOBILE_SAFE_PREVIEWS=window.GenesisDevice.safePreviews;\nconst APPROVED_SHIELD_V015_POSTER="./assets/ui/fabricaciones_ora_v004/V015_REAL_SHIELD_CROPPED.png";
+window.GenesisResultSwordGlb=GENESIS_SWORD_V12B_GLB;
+const MOBILE_SAFE_PREVIEWS=window.GenesisDevice.safePreviews;
+const APPROVED_SHIELD_V015_POSTER="./assets/ui/fabricaciones_ora_v004/V015_REAL_SHIELD_CROPPED.png";
 function itemAssetMarkup(item){
  const kind=recipeKind(item.recipe);
  if(item.recipe==='espada_hierro'){
