@@ -5,6 +5,7 @@ name: V20.007 isolated unified comparison shield and result
 # Escort test refresh: plaza shade, fountain collider, bypass route, merchant V02 GLB.
 # Water/merchant follow-up: restore plaza trees, correct market NPC position and missing fountain runtime.
 # Merchant stall anchor: verify world-bounds centering and same origin for merchant and counter.
+# Real-browser QA follow-up: inspect GLB render bounds, not just GLB bytes.
 on:
   push:
     branches: [experiment/v20-007-unified-comparison-result-20261109]
@@ -136,3 +137,19 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m 'preview(v20.007): unified result, comparison and V015 shield'
           git push origin HEAD:gh-pages
+
+      - name: Verify actual merchant V02 in headless PlayCanvas
+        id: merchant_browser
+        continue-on-error: true
+        run: |
+          cd candidate
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node tests/v20_007_merchant_browser.cjs
+      - name: Save merchant V02 browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v20-007-merchant-real-browser-qa
+          path: candidate/reports/v20-007-merchant/
+          if-no-files-found: warn
