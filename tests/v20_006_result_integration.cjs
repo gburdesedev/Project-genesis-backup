@@ -15,7 +15,7 @@ assert.match(craft,/craftedItems\.push\(item\)/);
 assert.match(craft,/GenesisResultDynamic\.decorate\(modalBox,item,itemAssetMarkup\)/);
 assert.match(craft,/const resultBtn=document\.getElementById\('resultContinue'\)/);
 assert(craft.indexOf('decorate(modalBox,item,itemAssetMarkup)')<craft.indexOf('resultBtn.onclick'),'Continue click handler must be bound AFTER decorating');
-assert.match(craft,/catch\(err\).*preserving original result/);
+assert.match(craft,/catch\(err\).*keeping original result/);
 const m=JSON.parse(fs.readFileSync(path.join(root,'assets/ui/resultado/oras/manifest.sha256.json'),'utf8'));
 assert.equal(m.channels.length,8);
 for(const row of m.channels){const b=fs.readFileSync(path.join(root,'assets/ui/resultado/oras',row.png));assert.equal(crypto.createHash('sha256').update(b).digest('hex'),row.png_sha256)}
