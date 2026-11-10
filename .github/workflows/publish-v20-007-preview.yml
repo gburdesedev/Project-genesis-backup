@@ -3,6 +3,7 @@ name: V20.007 isolated unified comparison shield and result
 # Explicit V007 rebuild requested; preserve stable main and previous V006 candidates.
 # Presentation rebuild 2026-11-10: freeze checkpoint first, rerun QA and publish preview only.
 # Escort test refresh: plaza shade, fountain collider, bypass route, merchant V02 GLB.
+# Water/merchant follow-up: restore plaza trees, correct market NPC position and missing fountain runtime.
 on:
   push:
     branches: [experiment/v20-007-unified-comparison-result-20261109]
@@ -35,6 +36,8 @@ jobs:
           node --check genesis_market_quest_v001.js
           node --check village_trees.js
           node --check genesis_market_v001.js
+          node --check previews/genesis-v038-fuente-hq-runtime.js
+          node --check village_world.js
           node --check genesis_comparacion_v032.js
           node --check preparacion_control.js
           node --check genesis_fabricacion_modular_v004.js
@@ -85,7 +88,19 @@ jobs:
           assert 'Math.hypot(x-7,z-16)<3.3+r' in html
           quest=Path('genesis_market_quest_v001.js').read_text()
           assert '{x:16.2,z:16.0}' in quest
-          assert 'merchant_v02_75962.glb' in Path('genesis_market_v001.js').read_text()
+          merchant=Path('genesis_market_v001.js').read_text()
+          assert 'merchant_v02_75962.glb' in merchant
+          assert 'x:28.35,y:0,z:38.48' in merchant
+          trees=Path('village_trees.js').read_text()
+          assert "['maple',11.8,11.7,'plaza']" in trees
+          assert "node.site.region!=='plaza'" not in trees
+          fountain=Path('previews/genesis-v038-fuente-hq-runtime.js').read_text()
+          assert "AGUA_" in fountain and 'new StandardMaterial()' in fountain
+          assert '20.007-water-corrected' in html
+          merchant_glb=Path('assets/playcanvas/approved/characters/merchant_v02_75962.glb').read_bytes()
+          assert merchant_glb[:4]==b'glTF' and struct.unpack_from('<I',merchant_glb,8)[0]==len(merchant_glb)
+          n,t=struct.unpack_from('<I4s',merchant_glb,12)
+          assert t==b'JSON' and json.loads(merchant_glb[20:20+n]).get('meshes')
           print('V007_UNIFIED_STATIC_QA_PASSED')
           PY
           test -s ../site/index.html
