@@ -35,9 +35,10 @@ jobs:
           node - <<'JS'
           const fs=require('fs'),vm=require('vm');
           const html=fs.readFileSync('index.html','utf8');
-          const scripts=[...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)]
-            .filter(m=>!(/\\bsrc\\s*=/.test(m[1])) && !(/\\btype\\s*=\\s*["'](?:application\\/json|importmap)["']/.test(m[1])));
-          for(const m of scripts)if(m[2].trim())new vm.Script(m[2],{filename:'index.html:inline-script'});
+          const scripts=html.split('<script').slice(1)
+            .map(x=>x.split('</script>')[0])
+            .filter(x=>{const h=x.slice(0,x.indexOf('>'));return !h.includes('src=')&&!h.includes('application/json')&&!h.includes('importmap');});
+          for(const script of scripts){const body=script.slice(script.indexOf('>')+1);if(body.trim())new vm.Script(body,{filename:'index.html:inline-script'});}
           if(!scripts.length)throw Error('No inline scripts found to parse');
           console.log('V007_INLINE_JS_SYNTAX_PASSED',scripts.length);
           JS
