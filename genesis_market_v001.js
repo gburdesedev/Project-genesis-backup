@@ -184,8 +184,9 @@ function loadMerchantV02(app,merchantRoot,visual){
         const anchor=merchantRoot.getPosition();
         const desired=new Vec3(anchor.x,anchor.y,anchor.z+.82);
         const current=new Vec3((scaled.minX+scaled.maxX)/2,scaled.minY,(scaled.minZ+scaled.maxZ)/2);
-        const localTarget=merchantRoot.worldToLocal(desired.clone());
-        const localCurrent=merchantRoot.worldToLocal(current.clone());
+        const inverseParent=merchantRoot.getWorldTransform().clone().invert();
+        const localTarget=inverseParent.transformPoint(desired,new Vec3());
+        const localCurrent=inverseParent.transformPoint(current,new Vec3());
         model.setLocalPosition(localTarget.x-localCurrent.x,localTarget.y-localCurrent.y,localTarget.z-localCurrent.z);
         const placed=extents();
         const centerX=(placed.minX+placed.maxX)/2,centerZ=(placed.minZ+placed.maxZ)/2;
