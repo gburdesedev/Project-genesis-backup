@@ -4,6 +4,7 @@ name: V20.007 isolated unified comparison shield and result
 # Presentation rebuild 2026-11-10: freeze checkpoint first, rerun QA and publish preview only.
 # Escort test refresh: plaza shade, fountain collider, bypass route, merchant V02 GLB.
 # Water/merchant follow-up: restore plaza trees, correct market NPC position and missing fountain runtime.
+# Merchant stall anchor: verify world-bounds centering and same origin for merchant and counter.
 on:
   push:
     branches: [experiment/v20-007-unified-comparison-result-20261109]
@@ -90,7 +91,10 @@ jobs:
           assert '{x:16.2,z:16.0}' in quest
           merchant=Path('genesis_market_v001.js').read_text()
           assert 'merchant_v02_75962.glb' in merchant
-          assert 'x:28.35,y:0,z:38.48' in merchant
+          assert 'const POS = STALL;' in merchant
+          assert 'merchantRoot.worldToLocal(desired.clone())' in merchant
+          assert 'merchantRoot.worldToLocal(current.clone())' in merchant
+          assert 'merchant-stall-anchor' in html
           trees=Path('village_trees.js').read_text()
           assert "['maple',11.8,11.7,'plaza']" in trees
           assert "node.site.region!=='plaza'" not in trees
@@ -100,7 +104,18 @@ jobs:
           merchant_glb=Path('assets/playcanvas/approved/characters/merchant_v02_75962.glb').read_bytes()
           assert merchant_glb[:4]==b'glTF' and struct.unpack_from('<I',merchant_glb,8)[0]==len(merchant_glb)
           n,t=struct.unpack_from('<I4s',merchant_glb,12)
-          assert t==b'JSON' and json.loads(merchant_glb[20:20+n]).get('meshes')
+          merchant_json=json.loads(merchant_glb[20:20+n])
+          assert t==b'JSON' and merchant_json.get('meshes')
+          nodes=merchant_json.get('nodes',[])
+          mesh_nodes=[{'name':node.get('name',''), 'translation':node.get('translation'), 'scale':node.get('scale'), 'matrix':node.get('matrix')} for node in nodes if 'mesh' in node]
+          accessors=merchant_json.get('accessors',[])
+          pos_accessors=[]
+          for mesh in merchant_json.get('meshes',[]):
+              for primitive in mesh.get('primitives',[]):
+                  idx=primitive.get('attributes',{}).get('POSITION')
+                  if idx is not None:
+                      a=accessors[idx];pos_accessors.append({'min':a.get('min'),'max':a.get('max')})
+          print('MERCHANT_V02_GLTF_DIAGNOSTIC',json.dumps({'nodes':len(nodes),'mesh_nodes':mesh_nodes[:8],'position_accessors':pos_accessors[:8]},ensure_ascii=False))
           print('V007_UNIFIED_STATIC_QA_PASSED')
           PY
           test -s ../site/index.html
