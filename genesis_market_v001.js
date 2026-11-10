@@ -153,50 +153,31 @@ function loadMerchantV02(app,merchantRoot,visual){
         const components=model.findComponents('render');
         const instances=components.flatMap(r=>r.meshInstances||[]);
         if(!instances.length)throw new Error('GLB has no renderable mesh instances');
-        // GLB mesh nodes can have an offset from their imported origin. Use
-        // actual WORLD-space mesh bounds, not the empty GLB root's coordinates.
-        function extents(){
-          model.getWorldTransform();
-          const out={minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity,minZ:Infinity,maxZ:-Infinity};
-          for(const mi of instances){
-            mi.node?.getWorldTransform?.();
-            const bounds=mi.aabb;if(!bounds)continue;
-            const lo=bounds.getMin(),hi=bounds.getMax();
-            out.minX=Math.min(out.minX,lo.x);out.maxX=Math.max(out.maxX,hi.x);
-            out.minY=Math.min(out.minY,lo.y);out.maxY=Math.max(out.maxY,hi.y);
-            out.minZ=Math.min(out.minZ,lo.z);out.maxZ=Math.max(out.maxZ,hi.z);
-          }
-          return out;
-        }
-        const initial=extents();
-        const originalHeight=initial.maxY-initial.minY;
-        if(!Number.isFinite(originalHeight)||originalHeight<=.1)
-          throw new Error('Invalid model height / bounds');
-        const scale=1.84/originalHeight;
-        if(!Number.isFinite(scale)||scale<.05||scale>30)
-          throw new Error('Unreasonable merchant model scale '+scale);
-        model.setLocalScale(scale,scale,scale);
-        const scaled=extents();
-        if(!Number.isFinite(scaled.minY)||!Number.isFinite(scaled.minX)||!Number.isFinite(scaled.minZ))
-          throw new Error('Merchant scaled world bounds unavailable');
-        // Stand behind the stall, 0.82 m from its anchor in world Z.
-        // Convert the correction to parent-local space (parent is rotated 90 deg).
+        // V02 uses KHR_mesh_quantization: its POSITION accessor is 0..16383,
+        // with an authored child-node scale of 0.000121621248 and translation
+        // (-0.54489,-1.00014,-0.31350). PlayCanvas meshInstance.aabb can
+        // report the unquantized 16K coordinates after a parent scale change.
+        // NEVER derive a scale or placement from that runtime AABB.
+        // The approved GLB is ~2.0 m high at scale 1; .92 makes it ~1.84 m.
+        const approvedScale=.92;
+        model.setLocalScale(approvedScale,approvedScale,approvedScale);
         const anchor=merchantRoot.getPosition();
         const desired=new Vec3(anchor.x,anchor.y,anchor.z+.82);
-        const current=new Vec3((scaled.minX+scaled.maxX)/2,scaled.minY,(scaled.minZ+scaled.maxZ)/2);
         const inverseParent=merchantRoot.getWorldTransform().clone().invert();
         const localTarget=inverseParent.transformPoint(desired,new Vec3());
-        const localCurrent=inverseParent.transformPoint(current,new Vec3());
-        model.setLocalPosition(localTarget.x-localCurrent.x,localTarget.y-localCurrent.y,localTarget.z-localCurrent.z);
-        const placed=extents();
-        const centerX=(placed.minX+placed.maxX)/2,centerZ=(placed.minZ+placed.maxZ)/2;
-        if(Math.hypot(centerX-desired.x,centerZ-desired.z)>.25||Math.abs(placed.minY-desired.y)>.25)
-          throw new Error('Merchant failed spatial alignment: '+JSON.stringify({desired,placed,scale}));
+        // Authored GLB mesh is centered around its origin, feet at local Y=-1.
+        // Move it up by its physical half-height so feet rest at Y=0.
+        model.setLocalPosition(localTarget.x,localTarget.y+approvedScale,localTarget.z);
+        const importedMeshNode=instances[0]?.node;
+        const importedScale=importedMeshNode?.getLocalScale?.();
+        if(!Number.isFinite(localTarget.x)||!Number.isFinite(localTarget.y)||!Number.isFinite(localTarget.z))
+          throw new Error('Invalid merchant placement');
+        const placed={x:desired.x,y:desired.y,z:desired.z,scale:approvedScale};
         // Remove placeholder only AFTER complete successful import and alignment.
         for(const old of [...merchantRoot.children]){
           if(old!==model)old.destroy();
         }
-        console.info('Genesis merchant V02 anchored behind market counter', {stall:STALL,desired,placed,scale,meshes:instances.length});
+        console.info('Genesis merchant V02 anchored behind market counter', {stall:STALL,desired,placed,importedScale,meshes:instances.length});
         visual.phase='ready';
         visual.modelName=model.name;
         visual.meshInstances=instances.length;
@@ -204,7 +185,8 @@ function loadMerchantV02(app,merchantRoot,visual){
         visual.heightMeters=1.84;
         visual.triangles=75962;
         visual.stallPosition={...STALL};
-        visual.merchantWorldBounds=placed;
+        visual.merchantPlacement=placed;
+        visual.importedMeshScale=importedScale?{x:importedScale.x,y:importedScale.y,z:importedScale.z}:null;
         visual.merchantTarget={x:desired.x,y:desired.y,z:desired.z};
         visual.error=null;
       }catch(cause){
