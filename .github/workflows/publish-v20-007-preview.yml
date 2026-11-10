@@ -6,6 +6,7 @@ name: V20.007 isolated unified comparison shield and result
 # Water/merchant follow-up: restore plaza trees, correct market NPC position and missing fountain runtime.
 # Merchant stall anchor: verify world-bounds centering and same origin for merchant and counter.
 # Real-browser QA follow-up: inspect GLB render bounds, not just GLB bytes.
+# Fix confirmed by failed browser test: Entity.worldToLocal is not a PlayCanvas API; use inverse world matrix.
 on:
   push:
     branches: [experiment/v20-007-unified-comparison-result-20261109]
@@ -93,9 +94,9 @@ jobs:
           merchant=Path('genesis_market_v001.js').read_text()
           assert 'merchant_v02_75962.glb' in merchant
           assert 'const POS = STALL;' in merchant
-          assert 'merchantRoot.worldToLocal(desired.clone())' in merchant
-          assert 'merchantRoot.worldToLocal(current.clone())' in merchant
-          assert 'merchant-stall-anchor' in html
+          assert 'inverseParent.transformPoint(desired,new Vec3())' in merchant
+          assert 'inverseParent.transformPoint(current,new Vec3())' in merchant
+          assert 'merchant-stall-anchor-fix' in html
           trees=Path('village_trees.js').read_text()
           assert "['maple',11.8,11.7,'plaza']" in trees
           assert "node.site.region!=='plaza'" not in trees
@@ -140,7 +141,6 @@ jobs:
 
       - name: Verify actual merchant V02 in headless PlayCanvas
         id: merchant_browser
-        continue-on-error: true
         run: |
           cd candidate
           npm install --no-save --no-package-lock playwright@1.56.1
