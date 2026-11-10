@@ -2,6 +2,7 @@ name: V20.007 isolated unified comparison shield and result
 # Regression pass: recovered renderer may add a standalone V12B GLB adapter.
 # Explicit V007 rebuild requested; preserve stable main and previous V006 candidates.
 # Presentation rebuild 2026-11-10: freeze checkpoint first, rerun QA and publish preview only.
+# Escort test refresh: plaza shade, fountain collider, bypass route, merchant V02 GLB.
 on:
   push:
     branches: [experiment/v20-007-unified-comparison-result-20261109]
@@ -31,6 +32,9 @@ jobs:
         run: |
           set -euo pipefail
           cd candidate
+          node --check genesis_market_quest_v001.js
+          node --check village_trees.js
+          node --check genesis_market_v001.js
           node --check genesis_comparacion_v032.js
           node --check preparacion_control.js
           node --check genesis_fabricacion_modular_v004.js
@@ -56,6 +60,7 @@ jobs:
           JS
           node --test modules/resultado_v016001/test_recovered_result.cjs
           node --test tests/v20_006_result_integration.cjs
+          test -s assets/playcanvas/approved/characters/merchant_v02_75962.glb
           test -s assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb
           test -s assets/ui/fabricaciones_ora_v004/V015_REAL_SHIELD_ICON_RGBA.png
           test -s assets/ui/resultado/oras/08_Rayo.png
@@ -76,6 +81,11 @@ jobs:
           assert 'modules/resultado_v016001/genesis_result_dynamic_v001.js?v=20.007' in html
           assert 'GenesisResultDynamic.decorate(modalBox,item,itemAssetMarkup)' in html
           assert 'project-genesis-backup-v20.007-candidate' in html
+          assert "startOrdanMarketEscort();toast('PRUEBA V20.007" in html
+          assert 'Math.hypot(x-7,z-16)<3.3+r' in html
+          quest=Path('genesis_market_quest_v001.js').read_text()
+          assert '{x:16.2,z:16.0}' in quest
+          assert 'merchant_v02_75962.glb' in Path('genesis_market_v001.js').read_text()
           print('V007_UNIFIED_STATIC_QA_PASSED')
           PY
           test -s ../site/index.html
