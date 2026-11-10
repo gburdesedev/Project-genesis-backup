@@ -2,12 +2,13 @@
    Reutiliza un personaje del propio juego; ninguna descarga externa ni arte de menús aprobado.
    Catálogo y compras provienen de genesis_market_domain_v001.js.
 */
-import { Entity, StandardMaterial, Color } from 'playcanvas';
+import { Entity, StandardMaterial, Color, Vec3 } from 'playcanvas';
 import './genesis_market_domain_v001.js?v=0.14.022';
 
 // Merchant stands behind the approved market counter, not beside Ordan.
-const POS = Object.freeze({x:28.35,y:0,z:38.48});
 const STALL = Object.freeze({x:28.35,y:0,z:37.6});
+// One canonical anchor for both the market stall and the approved merchant GLB.
+const POS = STALL;
 
 function mat(name,r,g,b,gloss=.14){
   const m=new StandardMaterial();m.name=name;
@@ -152,14 +153,20 @@ function loadMerchantV02(app,merchantRoot,visual){
         const components=model.findComponents('render');
         const instances=components.flatMap(r=>r.meshInstances||[]);
         if(!instances.length)throw new Error('GLB has no renderable mesh instances');
+        // GLB mesh nodes can have an offset from their imported origin. Use
+        // actual WORLD-space mesh bounds, not the empty GLB root's coordinates.
         function extents(){
-          let minY=Infinity,maxY=-Infinity;
+          model.getWorldTransform();
+          const out={minX:Infinity,maxX:-Infinity,minY:Infinity,maxY:-Infinity,minZ:Infinity,maxZ:-Infinity};
           for(const mi of instances){
-            const box=mi.aabb;if(!box)continue;
-            minY=Math.min(minY,box.getMin().y);
-            maxY=Math.max(maxY,box.getMax().y);
+            mi.node?.getWorldTransform?.();
+            const bounds=mi.aabb;if(!bounds)continue;
+            const lo=bounds.getMin(),hi=bounds.getMax();
+            out.minX=Math.min(out.minX,lo.x);out.maxX=Math.max(out.maxX,hi.x);
+            out.minY=Math.min(out.minY,lo.y);out.maxY=Math.max(out.maxY,hi.y);
+            out.minZ=Math.min(out.minZ,lo.z);out.maxZ=Math.max(out.maxZ,hi.z);
           }
-          return {minY,maxY};
+          return out;
         }
         const initial=extents();
         const originalHeight=initial.maxY-initial.minY;
@@ -170,19 +177,34 @@ function loadMerchantV02(app,merchantRoot,visual){
           throw new Error('Unreasonable merchant model scale '+scale);
         model.setLocalScale(scale,scale,scale);
         const scaled=extents();
-        if(!Number.isFinite(scaled.minY))throw new Error('Model floor bounds unavailable');
-        model.setLocalPosition(0,merchantRoot.getPosition().y-scaled.minY,0);
-        // Remove placeholder only AFTER a complete successful import.
+        if(!Number.isFinite(scaled.minY)||!Number.isFinite(scaled.minX)||!Number.isFinite(scaled.minZ))
+          throw new Error('Merchant scaled world bounds unavailable');
+        // Stand behind the stall, 0.82 m from its anchor in world Z.
+        // Convert the correction to parent-local space (parent is rotated 90 deg).
+        const anchor=merchantRoot.getPosition();
+        const desired=new Vec3(anchor.x,anchor.y,anchor.z+.82);
+        const current=new Vec3((scaled.minX+scaled.maxX)/2,scaled.minY,(scaled.minZ+scaled.maxZ)/2);
+        const localTarget=merchantRoot.worldToLocal(desired.clone());
+        const localCurrent=merchantRoot.worldToLocal(current.clone());
+        model.setLocalPosition(localTarget.x-localCurrent.x,localTarget.y-localCurrent.y,localTarget.z-localCurrent.z);
+        const placed=extents();
+        const centerX=(placed.minX+placed.maxX)/2,centerZ=(placed.minZ+placed.maxZ)/2;
+        if(Math.hypot(centerX-desired.x,centerZ-desired.z)>.25||Math.abs(placed.minY-desired.y)>.25)
+          throw new Error('Merchant failed spatial alignment: '+JSON.stringify({desired,placed,scale}));
+        // Remove placeholder only AFTER complete successful import and alignment.
         for(const old of [...merchantRoot.children]){
           if(old!==model)old.destroy();
         }
-        console.info('Genesis merchant V02 visible behind market counter', {position:merchantRoot.getPosition(),meshes:instances.length});
+        console.info('Genesis merchant V02 anchored behind market counter', {stall:STALL,desired,placed,scale,meshes:instances.length});
         visual.phase='ready';
         visual.modelName=model.name;
         visual.meshInstances=instances.length;
         visual.renderComponents=components.length;
         visual.heightMeters=1.84;
         visual.triangles=75962;
+        visual.stallPosition={...STALL};
+        visual.merchantWorldBounds=placed;
+        visual.merchantTarget={x:desired.x,y:desired.y,z:desired.z};
         visual.error=null;
       }catch(cause){
         if(model?.parent)model.destroy();
