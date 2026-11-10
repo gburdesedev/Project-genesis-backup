@@ -1,4 +1,5 @@
 name: V20.007 isolated unified comparison shield and result
+# Regression pass: recovered renderer may add a standalone V12B GLB adapter.
 on:
   push:
     branches: [experiment/v20-007-unified-comparison-result-20261109]
