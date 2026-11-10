@@ -1,0 +1,76 @@
+name: V20.007 isolated unified comparison shield and result
+on:
+  push:
+    branches: [experiment/v20-007-unified-comparison-result-20261109]
+    paths: ['.github/workflows/publish-v20-007-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: genesis-v20-007-unified-preview
+  cancel-in-progress: false
+jobs:
+  test-and-publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: experiment/v20-007-unified-comparison-result-20261109
+          path: candidate
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          persist-credentials: true
+      - name: Verify unified V007, independent of stable main
+        run: |
+          set -euo pipefail
+          cd candidate
+          node --check genesis_comparacion_v032.js
+          node --check preparacion_control.js
+          node --check genesis_fabricacion_modular_v004.js
+          node --check modules/resultado_v016001/genesis_result_dynamic_v001.js
+          node --test modules/resultado_v016001/test_recovered_result.cjs
+          node --test tests/v20_006_result_integration.cjs
+          test -s assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb
+          test -s assets/ui/fabricaciones_ora_v004/V015_REAL_SHIELD_ICON_RGBA.png
+          test -s assets/ui/resultado/oras/08_Rayo.png
+          test -s assets/playcanvas/approved/equipment/espada_v03_hierro_v175_v12b_cycles_hdri32.png
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,struct
+          glb=Path('assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb').read_bytes()
+          assert glb[:4]==b'glTF' and struct.unpack_from('<I',glb,4)[0]==2
+          assert struct.unpack_from('<I',glb,8)[0]==len(glb)
+          n,t=struct.unpack_from('<I4s',glb,12)
+          assert t==b'JSON' and json.loads(glb[20:20+n]).get('meshes')
+          html=Path('index.html').read_text()
+          comparison=Path('genesis_comparacion_v032.js').read_text()
+          assert "escudo_hierro:'./assets/ui/fabricaciones_ora_v004/escudo_hierro_v015_PBR2K_WEBP_v022.glb'" in html
+          assert 'V015_REAL_SHIELD_ICON_RGBA.png' in comparison
+          assert 'espada_v03_hierro_v175_v12b_cycles_hdri32.png' in comparison
+          assert 'modules/resultado_v016001/genesis_result_dynamic_v001.js?v=20.007' in html
+          assert 'GenesisResultDynamic.decorate(modalBox,item,itemAssetMarkup)' in html
+          assert 'project-genesis-backup-v20.007-candidate' in html
+          print('V007_UNIFIED_STATIC_QA_PASSED')
+          PY
+          test -s ../site/index.html
+      - name: Publish V007 in its own preview directory
+        run: |
+          set -euo pipefail
+          mkdir -p site/v20-007
+          rsync -a --delete --exclude='.git/' --exclude='.github/' --exclude='node_modules/' --exclude='preview/' --exclude='reference/' --exclude='qa-results/' candidate/ site/v20-007/
+          test -s site/v20-007/index.html
+          printf 'V20.007 experimental unified candidate; automatic QA required; runtime visual approval pending. Not integrated to main.\n' > site/v20-007/PREVIEW_STATUS.txt
+      - name: Commit preview only, not the stable root
+        working-directory: site
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add v20-007
+          git diff --cached --quiet && exit 0
+          git commit -m 'preview(v20.007): unified result, comparison and V015 shield'
+          git push origin HEAD:gh-pages
